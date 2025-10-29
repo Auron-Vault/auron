@@ -3,9 +3,16 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { WalletProvider } from '../context/WalletContext';
 import WelcomeScreen from '../screens/WelcomeScreen';
+import PinInputScreen from '../screens/PinInputScreen';
 import WalletDashboard from '../screens/WalletDashboard';
 
-const Stack = createNativeStackNavigator();
+export type RootStackParamList = {
+  Welcome: undefined;
+  PinInput: { tagId: string };
+  WalletDashboard: { tagId: string; pin: string } | undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function App() {
   return (
@@ -16,6 +23,7 @@ function App() {
           screenOptions={{ headerShown: false }}
         >
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="PinInput" component={PinInputScreen} />
           <Stack.Screen name="WalletDashboard" component={WalletDashboard} />
         </Stack.Navigator>
       </NavigationContainer>

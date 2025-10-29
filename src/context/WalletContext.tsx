@@ -1,13 +1,35 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
+import { ImageSourcePropType } from 'react-native';
+
+// Asset interface
+export interface Asset {
+  id: string;
+  name: string;
+  symbol: string;
+  logo: ImageSourcePropType;
+  price: number;
+  balance: number;
+  value: number;
+}
+
+// Wallet addresses interface
+export interface WalletAddresses {
+  bitcoin: string | null;
+  ethereum: string | null;
+  solana: string | null;
+}
 
 // 1. Define the shape of the context's value
 interface IWalletContext {
   tagId: string | null;
   setTagId: (id: string | null) => void;
-  evmAddress: string | null;
-  setEvmAddress: (address: string | null) => void;
-  solanaAddress: string | null;
-  setSolanaAddress: (address: string | null) => void;
+  pin: string | null;
+  setPin: (pin: string | null) => void;
+  addresses: WalletAddresses;
+  setAddresses: (addresses: WalletAddresses) => void;
+  assets: Asset[];
+  setAssets: (assets: Asset[]) => void;
+  totalValue: number;
 }
 
 // 2. Create the context with a default value
@@ -21,17 +43,28 @@ interface WalletProviderProps {
 // 4. Create the Provider component
 export function WalletProvider({ children }: WalletProviderProps) {
   const [tagId, setTagId] = useState<string | null>(null);
-  const [evmAddress, setEvmAddress] = useState<string | null>(null);
-  const [solanaAddress, setSolanaAddress] = useState<string | null>(null);
+  const [pin, setPin] = useState<string | null>(null);
+  const [addresses, setAddresses] = useState<WalletAddresses>({
+    bitcoin: null,
+    ethereum: null,
+    solana: null,
+  });
+  const [assets, setAssets] = useState<Asset[]>([]);
+
+  // Calculate total value from assets
+  const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
 
   // The complete value object to be passed to the provider
   const value = {
     tagId,
     setTagId,
-    evmAddress,
-    setEvmAddress,
-    solanaAddress,
-    setSolanaAddress,
+    pin,
+    setPin,
+    addresses,
+    setAddresses,
+    assets,
+    setAssets,
+    totalValue,
   };
 
   return (

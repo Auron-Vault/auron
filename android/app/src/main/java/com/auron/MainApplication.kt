@@ -1,4 +1,4 @@
-package com.aurona
+package com.auron
 
 import android.app.Application
 import com.facebook.react.PackageList
