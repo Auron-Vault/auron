@@ -1,0 +1,29 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/PostNoBillsColombo-Bold.ttf",
+      "sha1": "fd18228690be0e130ad86df1f63ea8b3ed638f0e"
+    },
+    {
+      "path": "assets/fonts/PostNoBillsColombo-ExtraBold.ttf",
+      "sha1": "e8c3b787ec656d397ad769f64df768dbdb7c1a27"
+    },
+    {
+      "path": "assets/fonts/PostNoBillsColombo-Light.ttf",
+      "sha1": "3b37327d37ece73e7f800f220329bf3a8d835c59"
+    },
+    {
+      "path": "assets/fonts/PostNoBillsColombo-Medium.ttf",
+      "sha1": "e524d8d855faebdffb6037308214bc0d0671315b"
+    },
+    {
+      "path": "assets/fonts/PostNoBillsColombo-Regular.ttf",
+      "sha1": "8578120ca2cbf45e254a332f72db84052da42bd4"
+    },
+    {
+      "path": "assets/fonts/PostNoBillsColombo-SemiBold.ttf",
+      "sha1": "9e450af69a1e81838b89ad14b75bcc7863407bae"
+    }
+  ]
+}

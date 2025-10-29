@@ -11,6 +11,14 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		428691D2A6BE445D8F5E8D36 /* PostNoBillsColombo-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 18093809EC164B03BB7C4961 /* PostNoBillsColombo-Bold.ttf */; };
+		35EE80DEA29C4A4D88A8760C /* PostNoBillsColombo-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 42676784CABF4C40878E077F /* PostNoBillsColombo-ExtraBold.ttf */; };
+		1B824C1B4CCF488D8B29DE4F /* PostNoBillsColombo-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EA63DC07594440A3B3DF0350 /* PostNoBillsColombo-Light.ttf */; };
+		1A506A02AF6F42CFB0B84CBC /* PostNoBillsColombo-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FC2BFA74A29745D3B18DC8E0 /* PostNoBillsColombo-Medium.ttf */; };
+		9EEA5DD2E131436093BA7D02 /* PostNoBillsColombo-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA840254899A4F1EB98D15EA /* PostNoBillsColombo-Regular.ttf */; };
+		4B7B884D9E2E49BD91E0C9B8 /* PostNoBillsColombo-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E36F767015F84E829C0E44A1 /* PostNoBillsColombo-SemiBold.ttf */; };
+		786C65DF22C84288ACA78144 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6A572B0CD44F4E118497C7EF /* BootSplash.storyboard */; };
+		960BD36FE3ED455A9A8A039F /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CEE32EFD77734C1F8D96768B /* Colors.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +32,14 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = aurona/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = aurona/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		18093809EC164B03BB7C4961 /* PostNoBillsColombo-Bold.ttf */ = {isa = PBXFileReference; name = "PostNoBillsColombo-Bold.ttf"; path = "../assets/fonts/PostNoBillsColombo-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		42676784CABF4C40878E077F /* PostNoBillsColombo-ExtraBold.ttf */ = {isa = PBXFileReference; name = "PostNoBillsColombo-ExtraBold.ttf"; path = "../assets/fonts/PostNoBillsColombo-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		EA63DC07594440A3B3DF0350 /* PostNoBillsColombo-Light.ttf */ = {isa = PBXFileReference; name = "PostNoBillsColombo-Light.ttf"; path = "../assets/fonts/PostNoBillsColombo-Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		FC2BFA74A29745D3B18DC8E0 /* PostNoBillsColombo-Medium.ttf */ = {isa = PBXFileReference; name = "PostNoBillsColombo-Medium.ttf"; path = "../assets/fonts/PostNoBillsColombo-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		FA840254899A4F1EB98D15EA /* PostNoBillsColombo-Regular.ttf */ = {isa = PBXFileReference; name = "PostNoBillsColombo-Regular.ttf"; path = "../assets/fonts/PostNoBillsColombo-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		E36F767015F84E829C0E44A1 /* PostNoBillsColombo-SemiBold.ttf */ = {isa = PBXFileReference; name = "PostNoBillsColombo-SemiBold.ttf"; path = "../assets/fonts/PostNoBillsColombo-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		6A572B0CD44F4E118497C7EF /* BootSplash.storyboard */ = {isa = PBXFileReference; name = "BootSplash.storyboard"; path = "aurona/BootSplash.storyboard"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		CEE32EFD77734C1F8D96768B /* Colors.xcassets */ = {isa = PBXFileReference; name = "Colors.xcassets"; path = "aurona/Colors.xcassets"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = folder.assetcatalog; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,6 +62,8 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
+				6A572B0CD44F4E118497C7EF /* BootSplash.storyboard */,
+				CEE32EFD77734C1F8D96768B /* Colors.xcassets */,
 			);
 			name = aurona;
 			sourceTree = "<group>";
@@ -74,6 +92,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				CBB0D739B063493F8E1424B1 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -96,6 +115,20 @@
 			);
 			path = Pods;
 			sourceTree = "<group>";
+		};
+		CBB0D739B063493F8E1424B1 /* Resources */ = {
+			isa = "PBXGroup";
+			children = (
+				18093809EC164B03BB7C4961 /* PostNoBillsColombo-Bold.ttf */,
+				42676784CABF4C40878E077F /* PostNoBillsColombo-ExtraBold.ttf */,
+				EA63DC07594440A3B3DF0350 /* PostNoBillsColombo-Light.ttf */,
+				FC2BFA74A29745D3B18DC8E0 /* PostNoBillsColombo-Medium.ttf */,
+				FA840254899A4F1EB98D15EA /* PostNoBillsColombo-Regular.ttf */,
+				E36F767015F84E829C0E44A1 /* PostNoBillsColombo-SemiBold.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+			path = "";
 		};
 /* End PBXGroup section */
 
@@ -159,6 +192,14 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				428691D2A6BE445D8F5E8D36 /* PostNoBillsColombo-Bold.ttf in Resources */,
+				35EE80DEA29C4A4D88A8760C /* PostNoBillsColombo-ExtraBold.ttf in Resources */,
+				1B824C1B4CCF488D8B29DE4F /* PostNoBillsColombo-Light.ttf in Resources */,
+				1A506A02AF6F42CFB0B84CBC /* PostNoBillsColombo-Medium.ttf in Resources */,
+				9EEA5DD2E131436093BA7D02 /* PostNoBillsColombo-Regular.ttf in Resources */,
+				4B7B884D9E2E49BD91E0C9B8 /* PostNoBillsColombo-SemiBold.ttf in Resources */,
+				786C65DF22C84288ACA78144 /* BootSplash.storyboard in Resources */,
+				960BD36FE3ED455A9A8A039F /* Colors.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

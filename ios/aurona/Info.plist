@@ -28,7 +28,6 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-	  <!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 		<key>NSAllowsLocalNetworking</key>
@@ -37,7 +36,7 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string>BootSplash</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>
@@ -50,5 +49,14 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>PostNoBillsColombo-Bold.ttf</string>
+		<string>PostNoBillsColombo-ExtraBold.ttf</string>
+		<string>PostNoBillsColombo-Light.ttf</string>
+		<string>PostNoBillsColombo-Medium.ttf</string>
+		<string>PostNoBillsColombo-Regular.ttf</string>
+		<string>PostNoBillsColombo-SemiBold.ttf</string>
+	</array>
 </dict>
 </plist>
