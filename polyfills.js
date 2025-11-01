@@ -1,6 +1,10 @@
-// polyfills.js - Load this FIRST before anything else
+// polyfills.js - Additional polyfills after react-native-get-random-values
+// NOTE: react-native-get-random-values is imported in index.js BEFORE this file
 
-// Process polyfill MUST come first
+// URL polyfill
+import 'react-native-url-polyfill/auto';
+
+// Process polyfill
 import process from 'process/browser';
 global.process = process;
 if (!global.process.env) {
@@ -9,67 +13,57 @@ if (!global.process.env) {
 global.process.version = 'v16.0.0';
 global.process.browser = true;
 
-// Get random values polyfill
-import 'react-native-get-random-values';
-
 // Buffer polyfill
 import { Buffer } from 'buffer';
 global.Buffer = Buffer;
 
-// Stream polyfill
-import { Readable } from 'readable-stream';
-if (typeof global.stream === 'undefined') {
-  global.stream = { Readable };
+// Set up btoa/atob first for base64 conversion
+if (typeof global.btoa === 'undefined') {
+  global.btoa = str => {
+    const buffer = Buffer.from(str, 'binary');
+    return buffer.toString('base64');
+  };
 }
 
-// Events polyfill
-import EventEmitter from 'events';
-if (typeof global.EventEmitter === 'undefined') {
-  global.EventEmitter = EventEmitter;
+if (typeof global.atob === 'undefined') {
+  global.atob = str => {
+    const buffer = Buffer.from(str, 'base64');
+    return buffer.toString('binary');
+  };
 }
 
-// Util polyfill
-import util from 'util';
-if (typeof global.util === 'undefined') {
-  global.util = util;
-}
+// Add base64 utilities needed by Solana - use native conversion without Buffer methods
+global.base64FromArrayBuffer = arrayBuffer => {
+  const bytes = new Uint8Array(arrayBuffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return global.btoa(binary);
+};
 
-// Assert polyfill
-import assert from 'assert';
-if (typeof global.assert === 'undefined') {
-  global.assert = assert;
-}
+global.arrayBufferFromBase64 = base64 => {
+  const binary = global.atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+};
 
-// TextEncoder/TextDecoder polyfill
-import { TextEncoder, TextDecoder } from 'fast-text-encoding';
+// TextEncoder/TextDecoder for @noble libraries
+import { TextEncoder, TextDecoder } from 'text-encoding';
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
-// Crypto polyfill - must come after process
-import { install } from 'react-native-quick-crypto';
-install();
-import { crypto } from 'react-native-quick-crypto';
-global.crypto = crypto;
+// Verify crypto.getRandomValues was set up
+if (!global.crypto || !global.crypto.getRandomValues) {
+  throw new Error('[Polyfill] crypto.getRandomValues was not set up properly!');
+}
 
 // Additional global shims
 if (typeof global.__dirname === 'undefined') global.__dirname = '/';
 if (typeof global.__filename === 'undefined') global.__filename = '';
 if (typeof global.setImmediate === 'undefined') {
   global.setImmediate = (fn, ...args) => setTimeout(fn, 0, ...args);
-}
-
-// Location polyfill
-if (typeof global.location === 'undefined') {
-  global.location = {
-    protocol: 'https:',
-    host: 'localhost',
-  };
-}
-
-// atob/btoa polyfills
-if (typeof global.atob === 'undefined') {
-  global.atob = str => Buffer.from(str, 'base64').toString('binary');
-}
-if (typeof global.btoa === 'undefined') {
-  global.btoa = str => Buffer.from(str, 'binary').toString('base64');
 }

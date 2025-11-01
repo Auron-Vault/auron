@@ -21,13 +21,18 @@ import { Wallet, toUtf8Bytes, keccak256, toBeArray, Mnemonic } from 'ethers';
 import Button from '../components/Button';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { useWallet } from '../context/WalletContext';
-NfcManager.start();
 
 function WelcomeScreen({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;
 }) {
+  // Initialize NFC when component mounts
+  useEffect(() => {
+    NfcManager.start().catch(err => {
+      console.log('NFC initialization failed:', err);
+    });
+  }, []);
   return (
     <SafeAreaProvider style={[tw`flex-1 bg-black`]}>
       <Root navigation={navigation} />
@@ -369,7 +374,7 @@ function Root({ navigation }: { navigation: NavigationProp<ParamListBase> }) {
             <Text
               style={[
                 fonts.pnbSemiBold,
-                tw`text-purple-300 text-lg text-center mb-1`,
+                tw`text-white text-lg text-center mb-1`,
               ]}
             >
               Secure. Simple. Yours.

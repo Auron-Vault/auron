@@ -10,12 +10,22 @@ export interface Asset {
   price: number;
   balance: number;
   value: number;
+  priceChangePercentage?: number; // Price change since last update
 }
 
 // Wallet addresses interface
 export interface WalletAddresses {
   bitcoin: string | null;
   ethereum: string | null;
+  bsc: string | null;
+  solana: string | null;
+}
+
+// Private keys interface (kept separate from addresses for security)
+export interface WalletPrivateKeys {
+  bitcoin: string | null;
+  ethereum: string | null;
+  bsc: string | null;
   solana: string | null;
 }
 
@@ -27,8 +37,10 @@ interface IWalletContext {
   setPin: (pin: string | null) => void;
   addresses: WalletAddresses;
   setAddresses: (addresses: WalletAddresses) => void;
+  privateKeys: WalletPrivateKeys;
+  setPrivateKeys: (keys: WalletPrivateKeys) => void;
   assets: Asset[];
-  setAssets: (assets: Asset[]) => void;
+  setAssets: (assets: Asset[] | ((prev: Asset[]) => Asset[])) => void;
   totalValue: number;
 }
 
@@ -47,6 +59,13 @@ export function WalletProvider({ children }: WalletProviderProps) {
   const [addresses, setAddresses] = useState<WalletAddresses>({
     bitcoin: null,
     ethereum: null,
+    bsc: null,
+    solana: null,
+  });
+  const [privateKeys, setPrivateKeys] = useState<WalletPrivateKeys>({
+    bitcoin: null,
+    ethereum: null,
+    bsc: null,
     solana: null,
   });
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -62,6 +81,8 @@ export function WalletProvider({ children }: WalletProviderProps) {
     setPin,
     addresses,
     setAddresses,
+    privateKeys,
+    setPrivateKeys,
     assets,
     setAssets,
     totalValue,
