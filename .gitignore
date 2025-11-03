@@ -145,6 +145,9 @@ web_modules/
 .env.*
 !.env.example
 
+# Intellectual property - wallet creation logic
+src/hooks/CreateWallet.tsx
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
