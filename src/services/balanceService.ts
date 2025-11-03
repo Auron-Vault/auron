@@ -510,7 +510,7 @@ export const fetchAllBalances = async (addresses: {
           'bitcoin',
           addresses.bitcoin!,
         );
-        balances['bitcoin'] = btcResult.balance;
+        balances.bitcoin = btcResult.balance;
         endTiming('BalanceService - Bitcoin');
       })(),
     );
@@ -525,7 +525,7 @@ export const fetchAllBalances = async (addresses: {
           'ethereum',
           addresses.ethereum!,
         );
-        balances['ethereum'] = ethResult.balance;
+        balances.ethereum = ethResult.balance;
         endTiming('BalanceService - Ethereum');
       })(),
     );
@@ -552,7 +552,7 @@ export const fetchAllBalances = async (addresses: {
           'bnb_smart_chain',
           addresses.bsc!,
         );
-        balances['bnb_smart_chain'] = bnbResult.balance;
+        balances.bnb_smart_chain = bnbResult.balance;
         endTiming('BalanceService - BNB');
       })(),
     );
@@ -576,7 +576,7 @@ export const fetchAllBalances = async (addresses: {
       (async () => {
         startTiming('BalanceService - Solana');
         const solResult = await fetchAssetBalance('solana', addresses.solana!);
-        balances['solana'] = solResult.balance;
+        balances.solana = solResult.balance;
         endTiming('BalanceService - Solana');
       })(),
     );
@@ -587,10 +587,10 @@ export const fetchAllBalances = async (addresses: {
 
   // Fetch XRP balance (if we have an XRP address)
   // For now, XRP, ADA, DOGE, TRX will show 0
-  balances['xrp_ledger'] = 0;
-  balances['cardano'] = 0;
-  balances['dogecoin'] = 0;
-  balances['tron'] = 0;
+  balances.xrp_ledger = 0;
+  balances.cardano = 0;
+  balances.dogecoin = 0;
+  balances.tron = 0;
 
   endTiming('BalanceService - Total Fetch Time');
 
