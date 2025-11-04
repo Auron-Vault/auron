@@ -1,6 +1,6 @@
-# Auron Vault - Multi-Chain Crypto Wallet# Auron Vault - Multi-Chain Crypto WalletThis is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Auron Vault - Multi-Chain Crypto Wallet# Auron Vault - Multi-Chain Crypto Wallet# Auron Vault - Multi-Chain Crypto Wallet# Auron Vault - Multi-Chain Crypto WalletThis is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
-<p align="center"><p align="center"># Getting Started
+<p align="center"><p align="center"><p align="center"><p align="center"># Getting Started
 
   <img src="https://img.shields.io/badge/React%20Native-0.76-blue.svg" alt="React Native">
 
@@ -8,7 +8,7 @@
 
   <img src="https://img.shields.io/badge/Platform-Android-green.svg" alt="Android">
 
-<img src="https://img.shields.io/badge/NFC-Enabled-orange.svg" alt="NFC"><img src="https://img.shields.io/badge/TypeScript-5.0-blue.svg" alt="TypeScript">> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+<img src="https://img.shields.io/badge/NFC-Enabled-orange.svg" alt="NFC"><img src="https://img.shields.io/badge/TypeScript-5.0-blue.svg" alt="TypeScript"> <img src="https://img.shields.io/badge/React%20Native-0.76-blue.svg" alt="React Native">
 
 </p>
 
@@ -16,273 +16,723 @@
 
 A secure, non-custodial multi-chain cryptocurrency wallet built with React Native. Auron Vault supports Bitcoin, Ethereum, Binance Smart Chain (BSC), and Solana - all secured through innovative NFC card technology.
 
-<img src="https://img.shields.io/badge/NFC-Enabled-orange.svg" alt="NFC">## Step 1: Start Metro
+<img src="https://img.shields.io/badge/NFC-Enabled-orange.svg" alt="NFC"><img src="https://img.shields.io/badge/TypeScript-5.0-blue.svg" alt="TypeScript"> <img src="https://img.shields.io/badge/React%20Native-0.76-blue.svg" alt="React Native">
 
 🌐 **Website**: [https://auron-vault.com/](https://auron-vault.com/)
 
 </p>
 
----
+## Features
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-## 🚀 Features
-
-A secure, non-custodial multi-chain cryptocurrency wallet built with React Native. Auron Vault supports Bitcoin, Ethereum, Binance Smart Chain (BSC), and Solana - all secured through innovative NFC card technology.
+  <img src="https://img.shields.io/badge/Platform-Android-green.svg" alt="Android">
 
 - **Multi-Chain Support**: Bitcoin, Ethereum, BSC, and Solana in one wallet
 
-- **NFC Security**: Generate deterministic wallets using NFC cards for enhanced securityTo start the Metro dev server, run the following command from the root of your React Native project:
+- **NFC Security**: Generate deterministic wallets using NFC cards for enhanced securityA secure, non-custodial multi-chain cryptocurrency wallet built with React Native. Auron Vault supports Bitcoin, Ethereum, Binance Smart Chain (BSC), and Solana - all secured through innovative NFC card technology.
 
 - **Non-Custodial**: You own your keys - we don't have access to your funds
 
-- **Real-time Prices**: Live cryptocurrency prices powered by CoinGecko🌐 **Website**: [https://auron-vault.com/](https://auron-vault.com/)
+- **Real-time Prices**: Live cryptocurrency prices powered by CoinGecko<img src="https://img.shields.io/badge/NFC-Enabled-orange.svg" alt="NFC"><img src="https://img.shields.io/badge/TypeScript-5.0-blue.svg" alt="TypeScript">> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
 
 - **Asset Management**: View balances, transfer assets, and manage multiple addresses
 
-- **Dedicated RPC Nodes**: Chainstack infrastructure with public fallbacks````sh
+- **Dedicated RPC Nodes**: Chainstack infrastructure with public fallbacks🌐 **Website**: [https://auron-vault.com/](https://auron-vault.com/)
 
 - **Production Optimized**: ProGuard minification, resource shrinking, and APK splits
 
-## 🚀 Features# Using npm
+</p>
+
+## Platform Support
 
 ---
 
-npm start
-
-## 📱 Platform Support
-
-- **Multi-Chain Support**: Bitcoin, Ethereum, BSC, and Solana in one wallet
-
 | Platform | Status |
 
-|----------|--------|- **NFC Security**: Generate deterministic wallets using NFC cards for enhanced security# OR using Yarn
+|----------|--------| <img src="https://img.shields.io/badge/Platform-Android-green.svg" alt="Android">
 
 | Android | ✅ Available |
 
-| iOS | 🚧 Coming Soon |- **Non-Custodial**: You own your keys - we don't have access to your fundsyarn start
+| iOS | 🚧 Coming Soon |## 🚀 Features
 
----- **Real-time Prices**: Live cryptocurrency prices powered by CoinGecko```
+## PrerequisitesA secure, non-custodial multi-chain cryptocurrency wallet built with React Native. Auron Vault supports Bitcoin, Ethereum, Binance Smart Chain (BSC), and Solana - all secured through innovative NFC card technology.
 
-## 🛠️ Prerequisites- **Asset Management**: View balances, transfer assets, and manage multiple addresses
+Before you begin, ensure you have the following installed:- **Multi-Chain Support**: Bitcoin, Ethereum, BSC, and Solana in one wallet
 
-Before you begin, ensure you have the following installed:- **Dedicated RPC Nodes**: Chainstack infrastructure with public fallbacks## Step 2: Build and run your app
-
-- **Node.js** (v18 or newer)- **Production Optimized**: ProGuard minification, resource shrinking, and APK splits
+- **Node.js** (v18 or newer)- **NFC Security**: Generate deterministic wallets using NFC cards for enhanced security<img src="https://img.shields.io/badge/NFC-Enabled-orange.svg" alt="NFC">## Step 1: Start Metro
 
 - **npm** or **yarn**
 
-- **Android Studio** (for Android development)With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+- **Android Studio** (for Android development)- **Non-Custodial**: You own your keys - we don't have access to your funds
 
 - **JDK 17** (required by React Native 0.76)
 
-- **Android SDK** (API Level 34)## 📱 Platform Support
+- **Android SDK** (API Level 34)- **Real-time Prices**: Live cryptocurrency prices powered by CoinGecko🌐 **Website**: [https://auron-vault.com/](https://auron-vault.com/)
 
-### Environment Setup### Android
+### Environment Setup- **Asset Management**: View balances, transfer assets, and manage multiple addresses
 
-Complete the [React Native environment setup](https://reactnative.dev/docs/set-up-your-environment) for Android development.| Platform | Status |
+Complete the [React Native environment setup](https://reactnative.dev/docs/set-up-your-environment) for Android development.- **Dedicated RPC Nodes**: Chainstack infrastructure with public fallbacks</p>
 
----|----------|--------|```sh
+## Installation- **Production Optimized**: ProGuard minification, resource shrinking, and APK splits
 
-## 📦 Installation| Android | ✅ Available |# Using npm
+### 1. Clone the repository---
 
-### 1. Clone the repository| iOS | 🚧 Coming Soon |npm run android
-
-```bash
+```bash---
 
 git clone https://github.com/Auron-Vault/auron.git
 
-cd auron## 🛠️ Prerequisites# OR using Yarn
+cd auronFirst, you will need to run **Metro**, the JavaScript build tool for React Native.
 
 ```
 
-yarn android
+## 📱 Platform Support
 
 ### 2. Install dependencies
 
-Before you begin, ensure you have the following installed:```
+## 🚀 Features
 
 ```bash
 
-npm install
+npm install| Platform | Status |
 
 ```
 
-- **Node.js** (v18 or newer)### iOS
+|----------|--------|A secure, non-custodial multi-chain cryptocurrency wallet built with React Native. Auron Vault supports Bitcoin, Ethereum, Binance Smart Chain (BSC), and Solana - all secured through innovative NFC card technology.
 
 ### 3. Configure environment variables
 
-- **npm** or **yarn**
+| Android | ✅ Available |
 
 Create a `.env` file in the root directory:
 
-- **Android Studio** (for Android development)For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+| iOS | 🚧 Coming Soon |- **Multi-Chain Support**: Bitcoin, Ethereum, BSC, and Solana in one wallet
 
 ```bash
 
-cp .env.example .env- **JDK 17** (required by React Native 0.76)
+cp .env.example .env---- **NFC Security**: Generate deterministic wallets using NFC cards for enhanced securityTo start the Metro dev server, run the following command from the root of your React Native project:
 
 ```
 
-- **Android SDK** (API Level 34)The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+## 🛠️ Prerequisites- **Non-Custodial**: You own your keys - we don't have access to your funds
 
 Edit `.env` and add your configuration:
 
-````env
+Before you begin, ensure you have the following installed:- **Real-time Prices**: Live cryptocurrency prices powered by CoinGecko🌐 **Website**: [https://auron-vault.com/](https://auron-vault.com/)
 
-# CoinGecko API (get free key from https://www.coingecko.com/en/api)### Environment Setup```sh
+`````env
+
+# CoinGecko API (get free key from https://www.coingecko.com/en/api)- **Node.js** (v18 or newer)- **Asset Management**: View balances, transfer assets, and manage multiple addresses
 
 COIN_GECKO_API_KEY=your_api_key_here
 
-bundle install
+- **npm** or **yarn**
 
 # Security salts (generate random strings)
 
-DEVELOPMENT_SALT=your_development_saltComplete the [React Native environment setup](https://reactnative.dev/docs/set-up-your-environment) for Android development.```
+DEVELOPMENT_SALT=your_development_salt- **Android Studio** (for Android development)- **Dedicated RPC Nodes**: Chainstack infrastructure with public fallbacks````sh
 
 PRODUCTION_SALT=your_production_salt
 
-
+- **JDK 17** (required by React Native 0.76)
 
 # Blockchain RPC URLs (use your Chainstack endpoints)
 
-ETHEREUM_RPC_URL=https://your-ethereum-rpc.com## 📦 InstallationThen, and every time you update your native dependencies, run:
+ETHEREUM_RPC_URL=https://your-ethereum-rpc.com- **Android SDK** (API Level 34)- **Production Optimized**: ProGuard minification, resource shrinking, and APK splits
 
 BSC_RPC_URL=https://your-bsc-rpc.com
 
-SOLANA_RPC_URL=https://your-solana-rpc.com
+SOLANA_RPC_URL=https://your-solana-rpc.com### Environment Setup## 🚀 Features# Using npm
 
 BITCOIN_RPC_URL=https://your-bitcoin-rpc.com
 
-```1. **Clone the repository**```sh
+```Complete the [React Native environment setup](https://reactnative.dev/docs/set-up-your-environment) for Android development.---
 
 
 
----```bashbundle exec pod install
+## Running the App---npm start
 
 
 
-## 🏃 Running the Appgit clone https://github.com/yourusername/auron.git```
+### Development Mode## 📦 Installation## 📱 Platform Support
 
 
 
-### Development Modecd auron
+**Start Metro bundler:**### 1. Clone the repository- **Multi-Chain Support**: Bitcoin, Ethereum, BSC, and Solana in one wallet
 
 
 
-**1. Start Metro bundler**```For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-
-
-```bash
+```bash```bash| Platform | Status |
 
 npm start
 
-```2. **Install dependencies**```sh
+```git clone https://github.com/Auron-Vault/auron.git
 
 
 
-**2. Run on Android (in a new terminal)**```bash# Using npm
+**Run on Android (in a new terminal):**cd auron|----------|--------|- **NFC Security**: Generate deterministic wallets using NFC cards for enhanced security# OR using Yarn
 
 
 
-```bashnpm installnpm run ios
+```bash```
 
 npm run android
 
-````
-
-Or build and run from Android Studio:# OR using Yarn
-
-- Open `android/` folder in Android Studio
-
-- Click **Run** or press `Shift + F10`3. **Configure environment variables**yarn ios
-
-### Production Build````
-
-**Build an optimized APK:**Create a `.env` file in the root directory:
-
-`bash`bashIf everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-npm run android:release
-
-`````cp .env.example .env
+```| Android | ✅ Available |
 
 
 
-**Build Android App Bundle (for Play Store):**```This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+Or build and run from Android Studio:### 2. Install dependencies
+
+
+
+- Open `android/` folder in Android Studio| iOS | 🚧 Coming Soon |- **Non-Custodial**: You own your keys - we don't have access to your fundsyarn start
+
+- Click **Run** or press `Shift + F10`
+
+````bash
+
+### Production Build
+
+npm install---- **Real-time Prices**: Live cryptocurrency prices powered by CoinGecko```
+
+**Build an optimized APK:**
+
+`````
+
+```bash
+
+npm run android:release## 🛠️ Prerequisites- **Asset Management**: View balances, transfer assets, and manage multiple addresses
+
+```
+
+### 3. Configure environment variables
+
+**Build Android App Bundle (for Play Store):**
+
+Before you begin, ensure you have the following installed:- **Dedicated RPC Nodes**: Chainstack infrastructure with public fallbacks## Step 2: Build and run your app
+
+```bash
+
+npm run android:bundleCreate a `.env` file in the root directory:
+
+```
+
+- **Node.js** (v18 or newer)- **Production Optimized**: ProGuard minification, resource shrinking, and APK splits
+
+The production build includes:
+
+````````bash
+
+- ProGuard minification
+
+- Resource shrinkingcp .env.example .env- **npm** or **yarn**
+
+- Console.log removal
+
+- APK splits by architecture (ARM, x86)```
+
+
+
+**Output locations:**- **Android Studio** (for Android development)With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+
+
+
+- APK: `android/app/build/outputs/apk/release/`Edit `.env` and add your configuration:
+
+- AAB: `android/app/build/outputs/bundle/release/`
+
+- **JDK 17** (required by React Native 0.76)
+
+## Project Structure
+
+```````env
+
+````````
+
+auron/# CoinGecko API (get free key from https://www.coingecko.com/en/api)- **Android SDK** (API Level 34)## 📱 Platform Support
+
+├── src/
+
+│ ├── components/ # Reusable UI componentsCOIN_GECKO_API_KEY=your_api_key_here
+
+│ ├── screens/ # App screens (Dashboard, AssetDetail, etc.)
+
+│ ├── navigation/ # React Navigation setup### Environment Setup### Android
+
+│ ├── hooks/ # Custom React hooks (wallet creation)
+
+│ ├── services/ # API services (CoinGecko, balances, transfers)# Security salts (generate random strings)
+
+│ ├── context/ # React Context (WalletContext)
+
+│ ├── utils/ # Utilities (caching, performance, transactions)DEVELOPMENT_SALT=your_development_saltComplete the [React Native environment setup](https://reactnative.dev/docs/set-up-your-environment) for Android development.| Platform | Status |
+
+│ ├── constants/ # Constants (colors, fonts, assets)
+
+│ └── assets/ # Images, fonts, animationsPRODUCTION_SALT=your_production_salt
+
+├── android/ # Android native code
+
+├── ios/ # iOS native code (coming soon)---|----------|--------|```sh
+
+└── .env # Environment variables (not in git)
+
+```````# Blockchain RPC URLs (use your Chainstack endpoints)
+
+
+
+## Security FeaturesETHEREUM_RPC_URL=https://your-ethereum-rpc.com## 📦 Installation| Android | ✅ Available |# Using npm
+
+
+
+- **Non-Custodial**: Private keys never leave your deviceBSC_RPC_URL=https://your-bsc-rpc.com
+
+- **NFC Integration**: Deterministic wallet generation using NFC cards
+
+- **BIP39 Compatible**: Standard mnemonic phrase supportSOLANA_RPC_URL=https://your-solana-rpc.com### 1. Clone the repository| iOS | 🚧 Coming Soon |npm run android
+
+- **Secure Storage**: Environment-based salt encryption
+
+- **No Telemetry**: Your transaction data stays privateBITCOIN_RPC_URL=https://your-bitcoin-rpc.com
+
+
+
+> [!WARNING]``````bash
+
+> Always backup your NFC card and recovery phrase. Loss of both means permanent loss of funds.
+
+
+
+## Supported Blockchain Networks
+
+---git clone https://github.com/Auron-Vault/auron.git
+
+| Network | Symbol | Features |
+
+|---------|--------|----------|
+
+| Bitcoin | BTC | Native SegWit (Bech32) addresses |
+
+| Ethereum | ETH | ERC-20 token support |## 🏃 Running the Appcd auron## 🛠️ Prerequisites# OR using Yarn
+
+| Binance Smart Chain | BSC | BEP-20 token support |
+
+| Solana | SOL | SPL token support |
+
+
+
+## Development### Development Mode```
+
+
+
+### Code Quality
+
+
+
+Run linter:**1. Start Metro bundler**yarn android
 
 
 
 ```bash
 
+npm run lint
+
+``````bash### 2. Install dependencies
+
+
+
+Fix auto-fixable issues:npm start
+
+
+
+```bash```Before you begin, ensure you have the following installed:```
+
+npm run lint -- --fix
+
+```````
+
+### Testing**2. Run on Android (in a new terminal)**```bash
+
+````````bash
+
+npm test
+
+``````bashnpm install
+
+
+
+## Troubleshootingnpm run android
+
+
+
+### Android Build Issues```````
+
+
+
+**Gradle build fails:**Or build and run from Android Studio:- **Node.js** (v18 or newer)### iOS
+
+
+
+```bash- Open `android/` folder in Android Studio
+
+cd android
+
+./gradlew clean- Click **Run** or press `Shift + F10`### 3. Configure environment variables
+
+cd ..
+
+npm run android### Production Build- **npm** or **yarn**
+
+````````
+
+**Build an optimized APK:**Create a `.env` file in the root directory:
+
+**Metro bundler cache issues:**
+
+```````bash- **Android Studio** (for Android development)For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+
+```bash
+
+npm start -- --reset-cachenpm run android:release
+
+```
+
+``````bash
+
+**NFC not working:**
+
+
+
+- Ensure device supports NFC
+
+- Enable NFC in Android settings**Build Android App Bundle (for Play Store):**cp .env.example .env- **JDK 17** (required by React Native 0.76)
+
+- Grant NFC permissions to the app
+
+
+
+### Environment Variable Issues
+
+```bash```
+
+If you see "undefined" for RPC URLs or API keys:
+
 npm run android:bundle
 
-```Edit `.env` and add your configuration:## Step 3: Modify your app
+1. Ensure `.env` file exists in root directory
+
+2. Restart Metro bundler after editing `.env````- **Android SDK** (API Level 34)The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+
+3. Rebuild the app (not just reload)
 
 
 
-The production build includes:```env
+## Coming Soon
 
-- ✅ ProGuard minification
+The production build includes:Edit `.env` and add your configuration:
 
-- ✅ Resource shrinking# CoinGecko API (get free key from https://www.coingecko.com/en/api)Now that you have successfully run the app, let's make changes!
+- 📱 **iOS Support** - Full iOS wallet with NFC
+
+- 📊 **Analytics Dashboard** - Transaction history and charts- ✅ ProGuard minification
+
+- 🔄 **Token Swaps** - Built-in DEX integration
+
+- 💰 **DeFi Integration** - Staking and yield farming- ✅ Resource shrinking````env
+
+- 🌍 **Multi-language Support**
 
 - ✅ Console.log removal
 
-- ✅ APK splits by architecture (ARM, x86)COIN_GECKO_API_KEY=your_api_key_here
+## Contributing
+
+- ✅ APK splits by architecture (ARM, x86)# CoinGecko API (get free key from https://www.coingecko.com/en/api)### Environment Setup```sh
+
+We welcome contributions! Please:
 
 
 
-**Output locations:**Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+1. Fork the repository
 
-- APK: `android/app/build/outputs/apk/release/`
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)**Output locations:**COIN_GECKO_API_KEY=your_api_key_here
 
-- AAB: `android/app/build/outputs/bundle/release/`# Security salts (generate random strings)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+
+4. Push to the branch (`git push origin feature/amazing-feature`)- APK: `android/app/build/outputs/apk/release/`
+
+5. Open a Pull Request
+
+- AAB: `android/app/build/outputs/bundle/release/`bundle install
+
+## License
 
 
 
----DEVELOPMENT_SALT=your_development_saltWhen you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+This project is licensed under the MIT License.
+
+---# Security salts (generate random strings)
+
+## Links
 
 
 
-## 📁 Project StructurePRODUCTION_SALT=your_production_salt
+- **Website**: [https://auron-vault.com/](https://auron-vault.com/)
+
+- **Documentation**: Coming soon## 📁 Project StructureDEVELOPMENT_SALT=your_development_saltComplete the [React Native environment setup](https://reactnative.dev/docs/set-up-your-environment) for Android development.```
+
+- **Support**: Visit our website for support
 
 
 
-```- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
+## Disclaimer
+
+```PRODUCTION_SALT=your_production_salt
+
+Auron Vault is experimental software. Use at your own risk. Always backup your recovery phrases and NFC cards. The developers are not responsible for lost funds.
 
 auron/
 
-├── src/# Blockchain RPC URLs (use your Chainstack endpoints)- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+---
 
-│   ├── components/      # Reusable UI components
+├── src/
 
-│   ├── screens/         # App screens (Dashboard, AssetDetail, etc.)ETHEREUM_RPC_URL=https://your-ethereum-rpc.com
+<p align="center">
+
+  Built with ❤️ using React Native│   ├── components/      # Reusable UI components
+
+</p>
+
+│   ├── screens/         # App screens (Dashboard, AssetDetail, etc.)# Blockchain RPC URLs (use your Chainstack endpoints)
 
 │   ├── navigation/      # React Navigation setup
 
-│   ├── hooks/           # Custom React hooks (wallet creation)BSC_RPC_URL=https://your-bsc-rpc.com## Congratulations! :tada:
+│   ├── hooks/           # Custom React hooks (wallet creation)ETHEREUM_RPC_URL=https://your-ethereum-rpc.com## 📦 InstallationThen, and every time you update your native dependencies, run:
 
 │   ├── services/        # API services (CoinGecko, balances, transfers)
 
-│   ├── context/         # React Context (WalletContext)SOLANA_RPC_URL=https://your-solana-rpc.com
+│   ├── context/         # React Context (WalletContext)BSC_RPC_URL=https://your-bsc-rpc.com
 
 │   ├── utils/           # Utilities (caching, performance, transactions)
 
-│   ├── constants/       # Constants (colors, fonts, assets)BITCOIN_RPC_URL=https://your-bitcoin-rpc.comYou've successfully run and modified your React Native App. :partying_face:
+│   ├── constants/       # Constants (colors, fonts, assets)SOLANA_RPC_URL=https://your-solana-rpc.com
 
 │   └── assets/          # Images, fonts, animations
 
-├── android/             # Android native code````
+├── android/             # Android native codeBITCOIN_RPC_URL=https://your-bitcoin-rpc.com
 
 ├── ios/                 # iOS native code (coming soon)
 
+└── .env                 # Environment variables (not in git)```1. **Clone the repository**```sh
+
+```````
+
+---
+
+---```bashbundle exec pod install
+
+## 🔐 Security Features
+
+- **Non-Custodial**: Private keys never leave your device
+
+- **NFC Integration**: Deterministic wallet generation using NFC cards## 🏃 Running the Appgit clone https://github.com/yourusername/auron.git```
+
+- **BIP39 Compatible**: Standard mnemonic phrase support
+
+- **Secure Storage**: Environment-based salt encryption
+
+- **No Telemetry**: Your transaction data stays private
+
+### Development Modecd auron
+
+> ⚠️ **Important**: Always backup your NFC card and recovery phrase. Loss of both means permanent loss of funds.
+
+---
+
+**1. Start Metro bundler**```For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+
+## 🔧 Supported Blockchain Networks
+
+| Network | Symbol | Features |
+
+|---------|--------|----------|```bash
+
+| Bitcoin | BTC | Native SegWit (Bech32) addresses |
+
+| Ethereum | ETH | ERC-20 token support |npm start
+
+| Binance Smart Chain | BSC | BEP-20 token support |
+
+| Solana | SOL | SPL token support |`2. **Install dependencies**`sh
+
+---
+
+## 📊 Development**2. Run on Android (in a new terminal)**```bash# Using npm
+
+### Code Quality
+
+Run linter:```bashnpm installnpm run ios
+
+```bashnpm run android
+
+npm run lint
+
+```
+
+Fix auto-fixable issues:Or build and run from Android Studio:# OR using Yarn
+
+```bash- Open `android/` folder in Android Studio
+
+npm run lint -- --fix
+
+```- Click **Run** or press `Shift + F10`3. **Configure environment variables**yarn ios
+
+### Testing### Production Build````
+
+```bash**Build an optimized APK:**Create a `.env` file in the root directory:
+
+npm test
+
+````bash`bashIf everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+
+---npm run android:release
+
+## 🐛 Troubleshooting`````cp .env.example .env
+
+### Android Build Issues
+
+**Gradle build fails:\*\***Build Android App Bundle (for Play Store):\*\*```This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+
+````bash
+
+cd android
+
+./gradlew clean```bash
+
+cd ..
+
+npm run androidnpm run android:bundle
+
+````
+
+```Edit `.env` and add your configuration:## Step 3: Modify your app
+
+**Metro bundler cache issues:**
+
+````bash
+
+npm start -- --reset-cacheThe production build includes:```env
+
+````
+
+- ✅ ProGuard minification
+
+**NFC not working:**
+
+- Ensure device supports NFC- ✅ Resource shrinking# CoinGecko API (get free key from https://www.coingecko.com/en/api)Now that you have successfully run the app, let's make changes!
+
+- Enable NFC in Android settings
+
+- Grant NFC permissions to the app- ✅ Console.log removal
+
+### Environment Variable Issues- ✅ APK splits by architecture (ARM, x86)COIN_GECKO_API_KEY=your_api_key_here
+
+If you see "undefined" for RPC URLs or API keys:
+
+1. Ensure `.env` file exists in root directory
+
+2. Restart Metro bundler after editing `.env`**Output locations:**Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+
+3. Rebuild the app (not just reload)
+
+- APK: `android/app/build/outputs/apk/release/`
+
+---
+
+- AAB: `android/app/build/outputs/bundle/release/`# Security salts (generate random strings)
+
+## 🚀 Coming Soon
+
+- 📱 **iOS Support** - Full iOS wallet with NFC
+
+- 📊 **Analytics Dashboard** - Transaction history and charts---DEVELOPMENT_SALT=your_development_saltWhen you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+
+- 🔄 **Token Swaps** - Built-in DEX integration
+
+- 💰 **DeFi Integration** - Staking and yield farming
+
+- 🌍 **Multi-language Support**
+
+## 📁 Project StructurePRODUCTION_SALT=your_production_salt
+
+---
+
+## 🤝 Contributing
+
+`````- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
+
+We welcome contributions! Please:
+
+auron/
+
+1. Fork the repository
+
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)├── src/# Blockchain RPC URLs (use your Chainstack endpoints)- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+
+4. Push to the branch (`git push origin feature/amazing-feature`)│   ├── components/      # Reusable UI components
+
+5. Open a Pull Request
+
+│   ├── screens/         # App screens (Dashboard, AssetDetail, etc.)ETHEREUM_RPC_URL=https://your-ethereum-rpc.com
+
+---
+
+│   ├── navigation/      # React Navigation setup
+
+## 📄 License
+
+│   ├── hooks/           # Custom React hooks (wallet creation)BSC_RPC_URL=https://your-bsc-rpc.com## Congratulations! :tada:
+
+This project is licensed under the MIT License.
+
+│   ├── services/        # API services (CoinGecko, balances, transfers)
+
+---
+
+│   ├── context/         # React Context (WalletContext)SOLANA_RPC_URL=https://your-solana-rpc.com
+
+## 🔗 Links
+
+│   ├── utils/           # Utilities (caching, performance, transactions)
+
+- **Website**: [https://auron-vault.com/](https://auron-vault.com/)
+
+- **Documentation**: Coming soon│   ├── constants/       # Constants (colors, fonts, assets)BITCOIN_RPC_URL=https://your-bitcoin-rpc.comYou've successfully run and modified your React Native App. :partying_face:
+
+- **Support**: Visit our website for support
+
+│   └── assets/          # Images, fonts, animations
+
+---
+
+├── android/             # Android native code````
+
+## ⚠️ Disclaimer
+
+├── ios/                 # iOS native code (coming soon)
+
+Auron Vault is experimental software. Use at your own risk. Always backup your recovery phrases and NFC cards. The developers are not responsible for lost funds.
+
 └── .env                 # Environment variables (not in git)### Now what?
+
+---
 
 `````
 
-## 🏃 Running the App
+<p align="center">
+
+Built with ❤️ using React Native## 🏃 Running the App
+
+</p>
 
 ---
 
