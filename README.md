@@ -9,7 +9,7 @@
 
 A secure, non-custodial multi-chain cryptocurrency wallet built with React Native. Auron Vault supports Bitcoin, Ethereum, Binance Smart Chain (BSC), and Solana - all secured through innovative NFC card technology.
 
- **Website**: [https://auron-vault.com/](https://auron-vault.com/)
+**Website**: [https://auron-vault.com/](https://auron-vault.com/)
 
 ## Features
 
@@ -23,10 +23,10 @@ A secure, non-custodial multi-chain cryptocurrency wallet built with React Nativ
 
 ## Platform Support
 
-| Platform | Status |
-|----------|--------|
-| Android  |  Available |
-| iOS      |  Coming Soon |
+| Platform | Status      |
+| -------- | ----------- |
+| Android  | Available   |
+| iOS      | Coming Soon |
 
 ## Prerequisites
 
@@ -161,12 +161,12 @@ auron/
 
 ## Supported Blockchain Networks
 
-| Network | Symbol | Features |
-|---------|--------|----------|
-| Bitcoin | BTC | Native SegWit (Bech32) addresses |
-| Ethereum | ETH | ERC-20 token support |
-| Binance Smart Chain | BSC | BEP-20 token support |
-| Solana | SOL | SPL token support |
+| Network             | Symbol | Features                         |
+| ------------------- | ------ | -------------------------------- |
+| Bitcoin             | BTC    | Native SegWit (Bech32) addresses |
+| Ethereum            | ETH    | ERC-20 token support             |
+| Binance Smart Chain | BSC    | BEP-20 token support             |
+| Solana              | SOL    | SPL token support                |
 
 ## Development
 
@@ -225,11 +225,11 @@ If you see "undefined" for RPC URLs or API keys:
 
 ## Coming Soon
 
--  **iOS Support** - Full iOS wallet with NFC
--  **Analytics Dashboard** - Transaction history and charts
--  **Token Swaps** - Built-in DEX integration
--  **DeFi Integration** - Staking and yield farming
--  **Multi-language Support**
+- **iOS Support** - Full iOS wallet with NFC
+- **Analytics Dashboard** - Transaction history and charts
+- **Token Swaps** - Built-in DEX integration
+- **DeFi Integration** - Staking and yield farming
+- **Multi-language Support**
 
 ## Contributing
 
@@ -250,10 +250,7 @@ This project is licensed under the MIT License.
 - **Website**: [https://auron-vault.com/](https://auron-vault.com/)
 - **Documentation**: Coming soon
 - **Support**: Visit our website for support
-
-## Disclaimer
-
-Auron Vault is experimental software. Use at your own risk. Always backup your recovery phrases and NFC cards. The developers are not responsible for lost funds.
+- **Whitepaper**: [https://auron-vault.com/auron-whitepaper.html](https://auron-vault.com/auron-whitepaper.html)
 
 ---
 
