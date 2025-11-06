@@ -23,6 +23,7 @@ import {
 } from '../services/transferService';
 import QRCodeScanner from './QRCodeScanner';
 import SlideToSend from './SlideToSend';
+import CustomAlert from './CustomAlert';
 import { saveTransaction } from '../utils/transactionHistory';
 
 interface TransferModalProps {
@@ -32,6 +33,8 @@ interface TransferModalProps {
   onClose: () => void;
   onSuccess: (txHash: string, amount: string, recipientAddress: string) => void;
   privateKey: string; // This should be retrieved securely from wallet
+  initialRecipientAddress?: string; // Optional pre-filled recipient address
+  maxAmount?: number; // Optional maximum transfer amount
 }
 
 const TransferModal: React.FC<TransferModalProps> = ({
@@ -41,6 +44,8 @@ const TransferModal: React.FC<TransferModalProps> = ({
   onClose,
   onSuccess,
   privateKey,
+  initialRecipientAddress,
+  maxAmount,
 }) => {
   const [recipientAddress, setRecipientAddress] = useState('');
   const [amount, setAmount] = useState('');
@@ -51,14 +56,31 @@ const TransferModal: React.FC<TransferModalProps> = ({
     feeUSD: number;
   } | null>(null);
 
+  // Custom Alert State
+  const [customAlert, setCustomAlert] = useState<{
+    visible: boolean;
+    title: string;
+    message?: string;
+    icon?: string;
+    iconColor?: string;
+    buttons?: Array<{
+      text: string;
+      onPress?: () => void;
+      style?: 'default' | 'cancel' | 'destructive';
+    }>;
+  }>({
+    visible: false,
+    title: '',
+  });
+
   // Reset form when modal opens/closes
   React.useEffect(() => {
     if (visible) {
-      setRecipientAddress('');
+      setRecipientAddress(initialRecipientAddress || '');
       setAmount('');
       setEstimatedFee(null);
     }
-  }, [visible]);
+  }, [visible, initialRecipientAddress]);
 
   // Estimate fee when amount changes
   const estimateFee = useCallback(async () => {
@@ -111,10 +133,14 @@ const TransferModal: React.FC<TransferModalProps> = ({
                 } (includes rent-exempt reserve)`
               : `${tempFee.fee.toFixed(8)} ${asset.symbol}`;
 
-          Alert.alert(
-            'Insufficient Balance',
-            `Your balance is too low to cover the network fee of ${feeDescription}`,
-          );
+          setCustomAlert({
+            visible: true,
+            title: 'Insufficient Balance',
+            message: `Your balance is too low to cover the network fee of ${feeDescription}`,
+            icon: 'alert-circle',
+            iconColor: colors.status.error,
+            buttons: [{ text: 'OK', style: 'default' }],
+          });
           return;
         }
 
@@ -135,7 +161,14 @@ const TransferModal: React.FC<TransferModalProps> = ({
 
   const handleTransfer = useCallback(async () => {
     if (!asset) {
-      Alert.alert('Error', 'No asset selected');
+      setCustomAlert({
+        visible: true,
+        title: 'Error',
+        message: 'No asset selected',
+        icon: 'alert-circle',
+        iconColor: colors.status.error,
+        buttons: [{ text: 'OK', style: 'default' }],
+      });
       return;
     }
 
@@ -149,7 +182,27 @@ const TransferModal: React.FC<TransferModalProps> = ({
     });
 
     if (!validation.valid) {
-      Alert.alert('Validation Error', validation.error || 'Invalid input');
+      setCustomAlert({
+        visible: true,
+        title: 'Validation Error',
+        message: validation.error || 'Invalid input',
+        icon: 'alert-circle',
+        iconColor: colors.status.error,
+        buttons: [{ text: 'OK', style: 'default' }],
+      });
+      return;
+    }
+
+    // Check max amount limit if specified
+    if (maxAmount !== undefined && parseFloat(amount) > maxAmount) {
+      setCustomAlert({
+        visible: true,
+        title: 'Amount Exceeds Limit',
+        message: `Maximum transfer amount is ${maxAmount} ${asset.symbol}`,
+        icon: 'alert-circle',
+        iconColor: colors.status.warning,
+        buttons: [{ text: 'OK', style: 'default' }],
+      });
       return;
     }
 
@@ -168,9 +221,10 @@ const TransferModal: React.FC<TransferModalProps> = ({
     if (isNativeToken && estimatedFee) {
       const totalRequired = parseFloat(amount) + estimatedFee.fee;
       if (asset.balance < totalRequired) {
-        Alert.alert(
-          'Insufficient Balance',
-          `You need ${totalRequired.toFixed(5)} ${
+        setCustomAlert({
+          visible: true,
+          title: 'Insufficient Balance',
+          message: `You need ${totalRequired.toFixed(5)} ${
             asset.symbol
           } total (${parseFloat(amount).toFixed(
             5,
@@ -179,7 +233,10 @@ const TransferModal: React.FC<TransferModalProps> = ({
           )} gas fee), but you only have ${asset.balance.toFixed(5)} ${
             asset.symbol
           }`,
-        );
+          icon: 'alert-circle',
+          iconColor: colors.status.error,
+          buttons: [{ text: 'OK', style: 'default' }],
+        });
         return;
       }
     }
@@ -225,34 +282,46 @@ const TransferModal: React.FC<TransferModalProps> = ({
           network: asset.name,
         });
 
-        Alert.alert(
-          'Success!',
-          `Transaction sent successfully!\n\nTx Hash: ${result.txHash.substring(
+        setCustomAlert({
+          visible: true,
+          title: 'Success!',
+          message: `Transaction sent successfully!\n\nTx Hash: ${result.txHash.substring(
             0,
             10,
           )}...${result.txHash.substring(result.txHash.length - 8)}`,
-          [
+          icon: 'check-circle',
+          iconColor: colors.status.success,
+          buttons: [
             {
               text: 'OK',
               onPress: () => {
                 onSuccess(result.txHash!, amount, recipientAddress);
                 onClose();
               },
+              style: 'default',
             },
           ],
-        );
+        });
       } else {
-        Alert.alert(
-          'Transfer Failed',
-          result.error || 'Unknown error occurred',
-        );
+        setCustomAlert({
+          visible: true,
+          title: 'Transfer Failed',
+          message: result.error || 'Unknown error occurred',
+          icon: 'close-circle',
+          iconColor: colors.status.error,
+          buttons: [{ text: 'OK', style: 'default' }],
+        });
       }
     } catch (error) {
       setIsLoading(false);
-      Alert.alert(
-        'Error',
-        error instanceof Error ? error.message : 'Transfer failed',
-      );
+      setCustomAlert({
+        visible: true,
+        title: 'Error',
+        message: error instanceof Error ? error.message : 'Transfer failed',
+        icon: 'alert-circle',
+        iconColor: colors.status.error,
+        buttons: [{ text: 'OK', style: 'default' }],
+      });
     }
   }, [
     asset,
@@ -269,13 +338,34 @@ const TransferModal: React.FC<TransferModalProps> = ({
       const text = await Clipboard.getString();
       if (text) {
         setRecipientAddress(text.trim());
-        Alert.alert('Success', 'Address pasted from clipboard');
+        setCustomAlert({
+          visible: true,
+          title: 'Success',
+          message: 'Address pasted from clipboard',
+          icon: 'check-circle',
+          iconColor: colors.status.success,
+          buttons: [{ text: 'OK', style: 'default' }],
+        });
       } else {
-        Alert.alert('Error', 'Clipboard is empty');
+        setCustomAlert({
+          visible: true,
+          title: 'Clipboard Empty',
+          message: 'Clipboard is empty',
+          icon: 'alert-circle',
+          iconColor: colors.status.warning,
+          buttons: [{ text: 'OK', style: 'default' }],
+        });
       }
     } catch (error) {
       console.error('Failed to read clipboard:', error);
-      Alert.alert('Error', 'Failed to read clipboard');
+      setCustomAlert({
+        visible: true,
+        title: 'Error',
+        message: 'Failed to read clipboard',
+        icon: 'alert-circle',
+        iconColor: colors.status.error,
+        buttons: [{ text: 'OK', style: 'default' }],
+      });
     }
   }, []);
 
@@ -669,6 +759,17 @@ const TransferModal: React.FC<TransferModalProps> = ({
         visible={showScanner}
         onClose={() => setShowScanner(false)}
         onScan={handleQRScanned}
+      />
+
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={customAlert.visible}
+        title={customAlert.title}
+        message={customAlert.message}
+        icon={customAlert.icon}
+        iconColor={customAlert.iconColor}
+        buttons={customAlert.buttons}
+        onDismiss={() => setCustomAlert({ ...customAlert, visible: false })}
       />
     </Modal>
   );

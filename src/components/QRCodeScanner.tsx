@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import tw from 'twrnc';
 import { fonts } from '../constants/fonts';
 import { colors } from '../constants/colors';
+import CustomAlert from './CustomAlert';
 
 interface QRCodeScannerProps {
   visible: boolean;
@@ -29,6 +30,23 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({
 }) => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isScanning, setIsScanning] = useState(true);
+
+  // Custom Alert State
+  const [customAlert, setCustomAlert] = useState<{
+    visible: boolean;
+    title: string;
+    message?: string;
+    icon?: string;
+    iconColor?: string;
+    buttons?: Array<{
+      text: string;
+      onPress?: () => void;
+      style?: 'default' | 'cancel' | 'destructive';
+    }>;
+  }>({
+    visible: false,
+    title: '',
+  });
 
   React.useEffect(() => {
     if (visible) {
@@ -54,10 +72,14 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({
           setHasPermission(true);
         } else {
           setHasPermission(false);
-          Alert.alert(
-            'Camera Permission Required',
-            'Please enable camera access to scan QR codes.',
-          );
+          setCustomAlert({
+            visible: true,
+            title: 'Camera Permission Required',
+            message: 'Please enable camera access to scan QR codes.',
+            icon: 'camera-off',
+            iconColor: colors.status.warning,
+            buttons: [{ text: 'OK', style: 'default' }],
+          });
         }
       } else {
         // For iOS, the permission will be requested automatically by the Camera component
@@ -163,6 +185,17 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({
           </View>
         )}
       </View>
+
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={customAlert.visible}
+        title={customAlert.title}
+        message={customAlert.message}
+        icon={customAlert.icon}
+        iconColor={customAlert.iconColor}
+        buttons={customAlert.buttons}
+        onDismiss={() => setCustomAlert({ ...customAlert, visible: false })}
+      />
     </Modal>
   );
 };

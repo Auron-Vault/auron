@@ -6,4 +6,5 @@ declare module '@env' {
   export const SOLANA_RPC_URL: string;
   export const BITCOIN_RPC_URL: string;
   export const ETHEREUM_RPC_URL: string;
+  export const TAP_TO_PAY_PIN: string;
 }

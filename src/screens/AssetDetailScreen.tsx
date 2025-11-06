@@ -18,6 +18,8 @@ import { colors } from '../constants/colors';
 import { useWallet, Asset } from '../context/WalletContext';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import TransferModal from '../components/TransferModal';
+import TransactionDetailModal from '../components/TransactionDetailModal';
+import CustomAlert from '../components/CustomAlert';
 import { getAssetTransactionHistory } from '../utils/transactionHistory';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
@@ -34,6 +36,9 @@ type Transaction = {
   symbol: string;
   date: string;
   txHash?: string;
+  toAddress?: string;
+  fromAddress?: string;
+  network?: string;
 };
 
 // Memoized Transaction Item Component
@@ -42,13 +47,17 @@ const TransactionItem = React.memo(
     item,
     asset,
     index,
+    onPress,
   }: {
     item: Transaction;
     asset: Asset;
     index: number;
+    onPress: () => void;
   }) => (
-    <View
+    <TouchableOpacity
       key={item.id}
+      onPress={onPress}
+      activeOpacity={0.7}
       style={[
         tw`flex-row items-center justify-between py-4 px-4 mb-2 rounded-xl`,
         { backgroundColor: colors.background.card },
@@ -121,7 +130,7 @@ const TransactionItem = React.memo(
           ${(item.amount * asset.price).toFixed(2)}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   ),
 );
 
@@ -133,6 +142,26 @@ const AssetDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const [privateKeyForAsset, setPrivateKeyForAsset] = useState('');
   const [txs, setTxs] = useState<Transaction[]>([]);
   const [loadingTxs, setLoadingTxs] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
+  const [showTransactionDetail, setShowTransactionDetail] = useState(false);
+
+  // Custom Alert State
+  const [customAlert, setCustomAlert] = useState<{
+    visible: boolean;
+    title: string;
+    message?: string;
+    icon?: string;
+    iconColor?: string;
+    buttons?: Array<{
+      text: string;
+      onPress?: () => void;
+      style?: 'default' | 'cancel' | 'destructive';
+    }>;
+  }>({
+    visible: false,
+    title: '',
+  });
 
   // Track screen mount time
   useEffect(() => {
@@ -227,10 +256,14 @@ const AssetDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
     if (address) {
       Clipboard.setString(address);
-      Alert.alert(
-        'Address Copied',
-        `${asset.symbol} address copied to clipboard`,
-      );
+      setCustomAlert({
+        visible: true,
+        title: 'Address Copied!',
+        message: `${asset.symbol} address copied to clipboard`,
+        icon: 'check-circle',
+        iconColor: colors.status.success,
+        buttons: [{ text: 'OK', style: 'default' }],
+      });
     }
   }, [asset, addresses]);
 
@@ -248,7 +281,15 @@ const AssetDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   // Optimized FlatList callbacks
   const renderTransaction = useCallback(
     ({ item, index }: { item: Transaction; index: number }) => (
-      <TransactionItem item={item} asset={asset!} index={index} />
+      <TransactionItem
+        item={item}
+        asset={asset!}
+        index={index}
+        onPress={() => {
+          setSelectedTransaction(item);
+          setShowTransactionDetail(true);
+        }}
+      />
     ),
     [asset],
   );
@@ -548,10 +589,14 @@ const AssetDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                           <TouchableOpacity
                             onPress={() => {
                               Clipboard.setString(addressForDisplay);
-                              Alert.alert(
-                                'Copied!',
-                                'Address copied to clipboard',
-                              );
+                              setCustomAlert({
+                                visible: true,
+                                title: 'Copied!',
+                                message: 'Address copied to clipboard',
+                                icon: 'check-circle',
+                                iconColor: colors.status.success,
+                                buttons: [{ text: 'OK', style: 'default' }],
+                              });
                             }}
                             style={[
                               tw`p-4 rounded-xl flex-row items-center justify-between w-full`,
@@ -678,6 +723,38 @@ const AssetDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           }
         }}
         privateKey={privateKeyForAsset}
+      />
+
+      {/* Transaction Detail Modal */}
+      <TransactionDetailModal
+        visible={showTransactionDetail}
+        transaction={selectedTransaction}
+        onClose={() => {
+          setShowTransactionDetail(false);
+          setSelectedTransaction(null);
+        }}
+        assetPrice={asset?.price}
+        onShowAlert={alert =>
+          setCustomAlert({
+            visible: true,
+            title: alert.title,
+            message: alert.message,
+            icon: alert.icon,
+            iconColor: alert.iconColor,
+            buttons: [{ text: 'OK', style: 'default' }],
+          })
+        }
+      />
+
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={customAlert.visible}
+        title={customAlert.title}
+        message={customAlert.message}
+        icon={customAlert.icon}
+        iconColor={customAlert.iconColor}
+        buttons={customAlert.buttons}
+        onDismiss={() => setCustomAlert({ ...customAlert, visible: false })}
       />
     </SafeAreaView>
   );
