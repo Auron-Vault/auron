@@ -1191,6 +1191,200 @@ export const transferSolana = async (
 };
 
 /**
+ * Solana SPL Token Transfer
+ * Handles SPL token transfers on Solana network (e.g., USDC)
+ */
+export const transferSolanaSPLToken = async (
+  params: TransferParams,
+): Promise<TransferResult> => {
+  const { fromAddress, toAddress, amount, privateKey, asset } = params;
+
+  try {
+    // Import Solana web3.js and spl-token
+    const { Connection, PublicKey, Transaction, LAMPORTS_PER_SOL, Keypair } =
+      await import('@solana/web3.js');
+
+    const {
+      getAssociatedTokenAddress,
+      createAssociatedTokenAccountInstruction,
+      createTransferInstruction,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    } = await import('@solana/spl-token');
+
+    // Import bs58 for private key decoding
+    const bs58 = await import('bs58');
+
+    // Get token mint address - hardcoded for USDC on Solana
+    // In future, this should come from asset configuration
+    const tokenMintAddress = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'; // USDC on Solana
+
+    // Use dedicated RPC with fallbacks
+    const rpcEndpoints = [
+      SOLANA_RPC_URL,
+      'https://api.mainnet-beta.solana.com',
+      'https://solana-mainnet.rpc.extrnode.com',
+      'https://solana.public-rpc.com',
+      'https://rpc.ankr.com/solana',
+    ];
+
+    let connection: any = null;
+    let lastError: Error | null = null;
+
+    // Try each RPC endpoint until one works
+    for (const rpcUrl of rpcEndpoints) {
+      try {
+        connection = new Connection(rpcUrl, 'confirmed');
+        await connection.getVersion();
+        console.log(`Connected to Solana via: ${rpcUrl}`);
+        break;
+      } catch (err) {
+        console.warn(`Failed to connect to ${rpcUrl}:`, err);
+        lastError = err as Error;
+        connection = null;
+      }
+    }
+
+    if (!connection) {
+      throw new Error(
+        `Failed to connect to Solana network. Last error: ${lastError?.message}`,
+      );
+    }
+
+    // Decode private key
+    let secretKey: Uint8Array;
+    if (privateKey.startsWith('0x')) {
+      const hexKey = privateKey.slice(2);
+      const buffer = Buffer.from(hexKey, 'hex');
+      secretKey = Uint8Array.from(buffer);
+    } else if (privateKey.length === 128 || privateKey.length === 64) {
+      const buffer = Buffer.from(privateKey, 'hex');
+      secretKey = Uint8Array.from(buffer);
+    } else {
+      secretKey = bs58.default.decode(privateKey);
+    }
+
+    const fromKeypair = Keypair.fromSecretKey(secretKey);
+    const mintPublicKey = new PublicKey(tokenMintAddress);
+    const toPublicKey = new PublicKey(toAddress);
+
+    // Get associated token addresses
+    const fromTokenAccount = await getAssociatedTokenAddress(
+      mintPublicKey,
+      fromKeypair.publicKey,
+      false,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
+
+    const toTokenAccount = await getAssociatedTokenAddress(
+      mintPublicKey,
+      toPublicKey,
+      false,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
+
+    // Get token decimals
+    const mintInfo = await connection.getParsedAccountInfo(mintPublicKey);
+    const decimals = mintInfo.value?.data?.parsed?.info?.decimals || 6; // USDC has 6 decimals
+
+    // Convert amount to smallest unit
+    const transferAmount = Math.floor(amount * Math.pow(10, decimals));
+
+    console.log(
+      `Transferring ${amount} tokens (${transferAmount} units with ${decimals} decimals)`,
+    );
+
+    // Get recent blockhash
+    const { blockhash, lastValidBlockHeight } =
+      await connection.getLatestBlockhash('finalized');
+
+    // Create transaction
+    const transaction = new Transaction({
+      recentBlockhash: blockhash,
+      feePayer: fromKeypair.publicKey,
+    });
+
+    // Check if destination token account exists
+    const toTokenAccountInfo = await connection.getAccountInfo(toTokenAccount);
+
+    if (!toTokenAccountInfo) {
+      console.log('Recipient token account does not exist. Creating it...');
+      // Add instruction to create associated token account
+      transaction.add(
+        createAssociatedTokenAccountInstruction(
+          fromKeypair.publicKey, // payer
+          toTokenAccount, // associated token account
+          toPublicKey, // owner
+          mintPublicKey, // mint
+          TOKEN_PROGRAM_ID,
+          ASSOCIATED_TOKEN_PROGRAM_ID,
+        ),
+      );
+    }
+
+    // Add transfer instruction
+    transaction.add(
+      createTransferInstruction(
+        fromTokenAccount, // source
+        toTokenAccount, // destination
+        fromKeypair.publicKey, // owner
+        transferAmount, // amount
+        [], // no multi-signers
+        TOKEN_PROGRAM_ID,
+      ),
+    );
+
+    // Sign transaction
+    transaction.sign(fromKeypair);
+
+    // Send transaction
+    const signature = await connection.sendRawTransaction(
+      transaction.serialize(),
+      {
+        skipPreflight: false,
+        preflightCommitment: 'confirmed',
+      },
+    );
+
+    // Wait for confirmation
+    const confirmation = await connection.confirmTransaction(
+      {
+        signature,
+        blockhash,
+        lastValidBlockHeight,
+      },
+      'confirmed',
+    );
+
+    if (confirmation.value.err) {
+      throw new Error(
+        `Transaction failed: ${JSON.stringify(confirmation.value.err)}`,
+      );
+    }
+
+    console.log('Solana SPL token transfer successful:', {
+      signature,
+      from: fromAddress,
+      to: toAddress,
+      amount: `${amount} ${asset?.symbol || 'USDC'}`,
+    });
+
+    return {
+      success: true,
+      txHash: signature,
+    };
+  } catch (error) {
+    console.error('Solana SPL token transfer error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
+
+/**
  * XRP Transfer
  * Handles XRP transactions on XRP Ledger network
  */
@@ -1367,6 +1561,10 @@ export const transferAsset = async (
 
     case 'solana':
       return transferSolana(params);
+
+    case 'usd_coin_(solana)':
+      // USDC SPL token on Solana
+      return transferSolanaSPLToken(params);
 
     case 'xrp_ledger':
       return transferXRP(params);

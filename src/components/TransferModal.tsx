@@ -191,6 +191,15 @@ const TransferModal: React.FC<TransferModalProps> = ({
   const executeTransfer = useCallback(async () => {
     if (!asset) return;
 
+    console.log('=== TRANSFER DEBUG ===');
+    console.log('Asset ID:', asset.id);
+    console.log('Asset Symbol:', asset.symbol);
+    console.log('From Address:', fromAddress);
+    console.log('To Address:', recipientAddress);
+    console.log('Amount:', amount);
+    console.log('Private Key Present:', !!privateKey);
+    console.log('Private Key Length:', privateKey?.length || 0);
+
     setIsLoading(true);
 
     try {

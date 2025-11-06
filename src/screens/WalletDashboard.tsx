@@ -53,6 +53,7 @@ const logoMap: { [key: string]: any } = {
   bnb_smart_chain: bnblogo,
   solana: solanalogo,
   'usd_coin_(ethereum)': usdclogo,
+  'usd_coin_(solana)': usdclogo, // USDC on Solana uses same logo
   'tether_(bsc)': tetherlogo,
   xrp_ledger: ripplelogo,
   cardano: cardanologo,
@@ -194,6 +195,19 @@ function Root({ navigation, route }: WalletDashboardProps) {
   useEffect(() => {
     const generateWallets = async () => {
       if (route.params?.tagId && route.params?.pin) {
+        // Skip wallet generation if we already have addresses in context
+        if (
+          addresses.bitcoin &&
+          addresses.ethereum &&
+          addresses.bsc &&
+          addresses.solana
+        ) {
+          console.log(
+            '[Wallet] Addresses already exist, skipping regeneration',
+          );
+          return;
+        }
+
         setIsLoading(true);
         const startTime = Date.now();
         try {
@@ -486,29 +500,35 @@ function Root({ navigation, route }: WalletDashboardProps) {
     }
   }, [addresses, setAssets]);
 
-  // Get private key from context when asset is selected for transfer
-  useEffect(() => {
-    if (selectedAssetForTransfer) {
-      const assetId = selectedAssetForTransfer.id;
+  // Helper function to get private key for an asset
+  const getPrivateKeyForAsset = useCallback(
+    (asset: Asset): string => {
+      const assetId = asset.id;
+      console.log('Getting private key for asset:', assetId);
+      console.log('Available private keys:', Object.keys(privateKeys));
 
-      // Map asset to network and get private key from context
       if (assetId === 'bitcoin') {
-        setPrivateKeyForTransfer(privateKeys.bitcoin || '');
-      } else if (assetId === 'solana') {
-        setPrivateKeyForTransfer(privateKeys.solana || '');
+        console.log('Using Bitcoin private key');
+        return privateKeys.bitcoin || '';
+      } else if (assetId === 'solana' || assetId === 'usd_coin_(solana)') {
+        console.log(
+          'Using Solana private key:',
+          privateKeys.solana ? 'FOUND' : 'NOT FOUND',
+        );
+        return privateKeys.solana || '';
       } else if (assetId === 'bnb_smart_chain' || assetId === 'tether_(bsc)') {
-        setPrivateKeyForTransfer(privateKeys.bsc || '');
+        console.log('Using BSC private key');
+        return privateKeys.bsc || '';
       } else if (['ethereum', 'usd_coin_(ethereum)'].includes(assetId)) {
-        setPrivateKeyForTransfer(privateKeys.ethereum || '');
+        console.log('Using Ethereum private key');
+        return privateKeys.ethereum || '';
       } else {
-        // For other networks not yet implemented
         console.log('Network not yet supported for private key:', assetId);
-        setPrivateKeyForTransfer('');
+        return '';
       }
-    } else {
-      setPrivateKeyForTransfer('');
-    }
-  }, [selectedAssetForTransfer, privateKeys]);
+    },
+    [privateKeys],
+  );
 
   // Network mapping for addresses - memoized
   const getNetworkForAsset = useCallback((assetId: string): string => {
@@ -593,7 +613,7 @@ function Root({ navigation, route }: WalletDashboardProps) {
           />
         }
       >
-        <View style={[tw`justify-between p-5`]}>
+        <View style={[tw`flex-row justify-between items-center p-5`]}>
           <Text style={[fonts.pnbBold, tw`text-white text-8 pt-5`]}>
             Auron Wallet
           </Text>
@@ -894,10 +914,6 @@ function Root({ navigation, route }: WalletDashboardProps) {
             renderItem={renderAssetItem}
             keyExtractor={keyExtractor}
             scrollEnabled={false}
-            initialNumToRender={10}
-            maxToRenderPerBatch={5}
-            windowSize={5}
-            removeClippedSubviews={true}
           />
         </View>
       </ScrollView>
@@ -942,6 +958,9 @@ function Root({ navigation, route }: WalletDashboardProps) {
                   onPress={() => {
                     setShowSendModal(false);
                     setSelectedAssetForTransfer(item);
+                    // Set private key immediately before opening modal
+                    const key = getPrivateKeyForAsset(item);
+                    setPrivateKeyForTransfer(key);
                     setShowTransferModal(true);
                   }}
                   style={[
@@ -1276,12 +1295,13 @@ function Root({ navigation, route }: WalletDashboardProps) {
         asset={selectedAssetForTransfer}
         fromAddress={
           selectedAssetForTransfer
-            ? selectedAssetForTransfer.symbol === 'BTC'
+            ? selectedAssetForTransfer.id === 'bitcoin'
               ? addresses.bitcoin || ''
-              : selectedAssetForTransfer.symbol === 'SOL'
+              : selectedAssetForTransfer.id === 'solana' ||
+                selectedAssetForTransfer.id === 'usd_coin_(solana)'
               ? addresses.solana || ''
-              : selectedAssetForTransfer.symbol === 'BNB' ||
-                selectedAssetForTransfer.symbol === 'USDT'
+              : selectedAssetForTransfer.id === 'bnb_smart_chain' ||
+                selectedAssetForTransfer.id === 'tether_(bsc)'
               ? addresses.bsc || ''
               : addresses.ethereum || ''
             : ''

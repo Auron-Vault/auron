@@ -35,7 +35,7 @@ export const allAssets = [
   // 3. Tether (USDT) - BSC
   {
     id: 'tether_(bsc)',
-    name: 'Tether',
+    name: 'Tether (BSC)',
     ticker: 'USDT',
     chain: 'BNB Smart Chain',
     type: 'EVM_TOKEN',
@@ -70,7 +70,7 @@ export const allAssets = [
   // 6. USD Coin (USDC) - Ethereum
   {
     id: 'usd_coin_(ethereum)',
-    name: 'USD Coin',
+    name: 'USD Coin (Ethereum)',
     ticker: 'USDC',
     chain: 'Ethereum',
     type: 'EVM_TOKEN',
@@ -78,50 +78,17 @@ export const allAssets = [
     libraries: evmLibraries,
   },
 
-  // 7. XRP (XRP)
+  // USD Coin (USDC) - Solana
   {
-    id: 'xrp_ledger',
-    name: 'XRP',
-    ticker: 'XRP',
-    chain: 'XRP Ledger',
-    type: 'NON_EVM_COIN',
-    contractAddress: null,
-    libraries: [{ name: 'xrpl', install: 'npm install xrpl' }],
-  },
-
-  // 8. Cardano (ADA)
-  {
-    id: 'cardano',
-    name: 'Cardano',
-    ticker: 'ADA',
-    chain: 'Cardano',
-    type: 'NON_EVM_COIN',
-    contractAddress: null,
+    id: 'usd_coin_(solana)',
+    name: 'USD Coin (Solana)',
+    ticker: 'USDC',
+    chain: 'Solana',
+    type: 'NON_EVM_TOKEN',
+    contractAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
     libraries: [
-      { name: 'lucid-cardano', install: 'npm install lucid-cardano' },
-      { name: '@meshsdk/core', install: 'npm install @meshsdk/core' },
+      { name: '@solana/web3.js', install: 'npm install @solana/web3.js' },
+      { name: '@solana/spl-token', install: 'npm install @solana/spl-token' },
     ],
-  },
-
-  // 9. Dogecoin (DOGE) - Using Bitcoin libraries
-  {
-    id: 'dogecoin',
-    name: 'Dogecoin',
-    ticker: 'DOGE',
-    chain: 'Dogecoin',
-    type: 'NON_EVM_COIN',
-    contractAddress: null,
-    libraries: [{ name: 'bitcore-lib', install: 'npm install bitcore-lib' }],
-  },
-
-  // 10. TRON (TRX)
-  {
-    id: 'tron',
-    name: 'TRON',
-    ticker: 'TRX',
-    chain: 'Tron',
-    type: 'NON_EVM_COIN',
-    contractAddress: null,
-    libraries: [{ name: 'tronweb', install: 'npm install tronweb' }],
   },
 ];

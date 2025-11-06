@@ -379,6 +379,72 @@ export const fetchSolanaBalance = async (
 };
 
 /**
+ * Fetch Solana SPL Token balance
+ * Supports any SPL token on Solana (e.g., USDC)
+ */
+export const fetchSolanaSPLTokenBalance = async (
+  walletAddress: string,
+  tokenMintAddress: string,
+): Promise<BalanceResult> => {
+  const rpcEndpoints = [
+    SOLANA_RPC_URL,
+    'https://api.mainnet-beta.solana.com',
+    'https://solana-api.projectserum.com',
+    'https://rpc.ankr.com/solana',
+  ];
+
+  for (const rpcUrl of rpcEndpoints) {
+    try {
+      // Step 1: Get token accounts by owner
+      const response = await fetch(rpcUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'getTokenAccountsByOwner',
+          params: [
+            walletAddress,
+            { mint: tokenMintAddress },
+            { encoding: 'jsonParsed' },
+          ],
+        }),
+      });
+
+      if (!response.ok) continue;
+
+      const data = await response.json();
+      if (data.error) continue;
+
+      // Extract balance from token accounts
+      const accounts = data.result?.value || [];
+      if (accounts.length === 0) {
+        return { balance: 0 }; // No token account found
+      }
+
+      // Get the balance from the first account (usually there's only one)
+      const tokenAccount = accounts[0];
+      const balanceInfo =
+        tokenAccount?.account?.data?.parsed?.info?.tokenAmount;
+
+      if (!balanceInfo) {
+        return { balance: 0 };
+      }
+
+      // Use uiAmount for human-readable balance (already adjusted for decimals)
+      const balance = parseFloat(balanceInfo.uiAmount || 0);
+
+      return { balance };
+    } catch (error) {
+      console.warn(`Failed to fetch SPL token from ${rpcUrl}:`, error);
+      continue;
+    }
+  }
+
+  return { balance: 0, error: 'All RPC endpoints failed' };
+};
+
+/**
  * Fetch XRP balance
  * Uses XRPL public API
  */
@@ -463,15 +529,12 @@ export const fetchAssetBalance = async (
       case 'solana':
         return await fetchSolanaBalance(address);
 
-      case 'xrp_ledger':
-        return await fetchXRPBalance(address);
-
-      // Placeholder for unsupported assets
-      case 'cardano':
-      case 'dogecoin':
-      case 'tron':
-        console.warn(`Balance fetching not implemented for ${assetId}`);
-        return { balance: 0, error: 'Not implemented' };
+      case 'usd_coin_(solana)':
+        // USDC SPL token on Solana
+        return await fetchSolanaSPLTokenBalance(
+          address,
+          'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC mint address
+        );
 
       default:
         return { balance: 0, error: `Unsupported asset: ${assetId}` };
@@ -580,17 +643,22 @@ export const fetchAllBalances = async (addresses: {
         endTiming('BalanceService - Solana');
       })(),
     );
+
+    fetchPromises.push(
+      (async () => {
+        startTiming('BalanceService - USDC (Solana SPL)');
+        const usdcSolResult = await fetchAssetBalance(
+          'usd_coin_(solana)',
+          addresses.solana!,
+        );
+        balances['usd_coin_(solana)'] = usdcSolResult.balance;
+        endTiming('BalanceService - USDC (Solana SPL)');
+      })(),
+    );
   }
 
   // Wait for all fetches to complete in parallel
   await Promise.all(fetchPromises);
-
-  // Fetch XRP balance (if we have an XRP address)
-  // For now, XRP, ADA, DOGE, TRX will show 0
-  balances.xrp_ledger = 0;
-  balances.cardano = 0;
-  balances.dogecoin = 0;
-  balances.tron = 0;
 
   endTiming('BalanceService - Total Fetch Time');
 

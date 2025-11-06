@@ -185,7 +185,7 @@ const AssetDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     // Map asset to network and get private key from context
     if (assetIdVal === 'bitcoin') {
       setPrivateKeyForAsset(privateKeys.bitcoin || '');
-    } else if (assetIdVal === 'solana') {
+    } else if (assetIdVal === 'solana' || assetIdVal === 'usd_coin_(solana)') {
       setPrivateKeyForAsset(privateKeys.solana || '');
     } else if (
       assetIdVal === 'bnb_smart_chain' ||
@@ -217,7 +217,7 @@ const AssetDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     let address = '';
     if (asset.symbol === 'BTC') {
       address = addresses.bitcoin || '';
-    } else if (asset.symbol === 'SOL') {
+    } else if (asset.symbol === 'SOL' || asset.id === 'usd_coin_(solana)') {
       address = addresses.solana || '';
     } else if (asset.symbol === 'BNB' || asset.symbol === 'USDT') {
       address = addresses.bsc || '';
@@ -238,7 +238,8 @@ const AssetDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     if (!asset) return 'Generating...';
     const symbol = asset.symbol;
     if (symbol === 'BTC') return addresses.bitcoin || 'Generating...';
-    if (symbol === 'SOL') return addresses.solana || 'Generating...';
+    if (symbol === 'SOL' || asset.id === 'usd_coin_(solana)')
+      return addresses.solana || 'Generating...';
     if (symbol === 'BNB' || symbol === 'USDT')
       return addresses.bsc || 'Generating...';
     return addresses.ethereum || 'Generating...';

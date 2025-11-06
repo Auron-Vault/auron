@@ -51,6 +51,10 @@ global.arrayBufferFromBase64 = base64 => {
   return bytes.buffer;
 };
 
+// Alias for Solana library compatibility
+global.base64ToArrayBuffer = global.arrayBufferFromBase64;
+global.arrayBufferToBase64 = global.base64FromArrayBuffer;
+
 // TextEncoder/TextDecoder for @noble libraries
 import { TextEncoder, TextDecoder } from 'text-encoding';
 global.TextEncoder = TextEncoder;
