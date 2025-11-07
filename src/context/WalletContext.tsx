@@ -42,6 +42,11 @@ interface IWalletContext {
   assets: Asset[];
   setAssets: (assets: Asset[] | ((prev: Asset[]) => Asset[])) => void;
   totalValue: number;
+  // Tap-to-Pay wallet state
+  tapToPayAddress: string | null;
+  setTapToPayAddress: (address: string | null) => void;
+  tapToPayInitialized: boolean;
+  setTapToPayInitialized: (initialized: boolean) => void;
 }
 
 // 2. Create the context with a default value
@@ -70,6 +75,10 @@ export function WalletProvider({ children }: WalletProviderProps) {
   });
   const [assets, setAssets] = useState<Asset[]>([]);
 
+  // Tap-to-Pay wallet state
+  const [tapToPayAddress, setTapToPayAddress] = useState<string | null>(null);
+  const [tapToPayInitialized, setTapToPayInitialized] = useState(false);
+
   // Calculate total value from assets
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
 
@@ -86,6 +95,10 @@ export function WalletProvider({ children }: WalletProviderProps) {
     assets,
     setAssets,
     totalValue,
+    tapToPayAddress,
+    setTapToPayAddress,
+    tapToPayInitialized,
+    setTapToPayInitialized,
   };
 
   return (

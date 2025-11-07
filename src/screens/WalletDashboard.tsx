@@ -12,8 +12,8 @@ import {
   Clipboard,
   Alert,
   RefreshControl,
-  Dimensions,
 } from 'react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import tw from 'twrnc';
 import { fonts } from '../constants/fonts';
 import { colors } from '../constants/colors';
@@ -39,9 +39,9 @@ import { fetchAllBalances } from '../services/balanceService';
 import createAllWallets, { getPrivateKey } from '../hooks/CreateWallet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { fetchCoinPrices } from '../services/coinGeckoService';
-import { saveTransaction } from '../utils/transactionHistory';
+import { saveTransaction, saveWalletId } from '../utils/transactionHistory';
 import SwipeableAssetCard from '../components/SwipeableAssetCard';
-import TapToPayCard from '../components/TapToPayCard';
+import { TransactionHistoryItem } from '../utils/transactionHistory';
 import CustomAlert from '../components/CustomAlert';
 import {
   startTiming,
@@ -148,6 +148,9 @@ function Root({ navigation, route }: WalletDashboardProps) {
     [key: string]: number;
   }>({});
   const [timeDisplay, setTimeDisplay] = useState('');
+  const [tapToPayTransactions, setTapToPayTransactions] = useState<
+    TransactionHistoryItem[]
+  >([]);
 
   // Custom Alert State
   const [customAlert, setCustomAlert] = useState<{
@@ -279,6 +282,13 @@ function Root({ navigation, route }: WalletDashboardProps) {
           console.log(
             `[Wallet] Total time to show UI: ${Date.now() - startTime}ms`,
           );
+
+          // Register main wallet with backend (async, non-blocking)
+          if (wallets.solana) {
+            saveWalletId(wallets.solana, 'main').catch(err =>
+              console.warn('Failed to register main wallet:', err),
+            );
+          }
           // Stop loading immediately after wallet generation
           setIsLoading(false);
 
@@ -333,9 +343,13 @@ function Root({ navigation, route }: WalletDashboardProps) {
   }, []);
 
   // Fetch real prices from CoinGecko (1 req/min) - logos are local
+  // Run in background after assets are loaded to avoid blocking UI
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log('[WalletDashboard] Fetching prices in background...');
+        startTiming('WalletDashboard - Price Fetch');
+
         // Map our asset ID to CoinGecko ID (all 10 cryptocurrencies)
         const geckoIdMap: { [key: string]: string } = {
           bitcoin: 'bitcoin',
@@ -354,13 +368,15 @@ function Root({ navigation, route }: WalletDashboardProps) {
         const assetIds = allAssets.map(asset => asset.id);
         const geckoIds = assetIds.map(id => geckoIdMap[id]).filter(Boolean);
 
-        // Fetch prices from CoinGecko API
+        // Fetch prices from CoinGecko API (non-blocking, uses cache if available)
         const prices = await fetchCoinPrices(geckoIds, {
           includeMarketCap: true,
           include24hrVol: true,
           include24hrChange: true,
           includeLastUpdated: true,
         });
+
+        endTiming('WalletDashboard - Price Fetch');
 
         // Update assets with real prices - logos are already set from local images
         setAssets((currentAssets: Asset[]) => {
@@ -383,14 +399,20 @@ function Root({ navigation, route }: WalletDashboardProps) {
             return asset;
           });
         });
+
+        console.log('[WalletDashboard] Prices updated');
       } catch (error) {
-        console.error('[WalletDashboard] Error fetching data:', error);
+        console.error('[WalletDashboard] Error fetching prices:', error);
+        // Continue with mock prices - don't block user experience
       }
     };
 
     // Fetch data after initial assets are loaded
+    // Use setTimeout to ensure this runs AFTER the UI is rendered
     if (assets.length > 0) {
-      fetchData();
+      setTimeout(() => {
+        fetchData();
+      }, 100); // Delay 100ms to ensure UI renders first
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
@@ -659,407 +681,350 @@ function Root({ navigation, route }: WalletDashboardProps) {
           </Text>
         </View>
 
-        {/** Wallet Cards Carousel Section Start**/}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          pagingEnabled
-          decelerationRate="fast"
-          snapToInterval={Dimensions.get('window').width - 32}
-          snapToAlignment="center"
-          contentContainerStyle={tw`px-4`}
-          style={tw`mt-5`}
-        >
-          {/* Main Wallet Card */}
-          <View
-            style={[
-              tw`rounded-3xl p-6 shadow-2xl mr-4`,
-              {
-                width: Dimensions.get('window').width - 48,
-                backgroundColor: colors.primary.bg10,
-                borderWidth: 1,
-                borderColor: colors.primary.border30,
-              },
-            ]}
+        {/** Main Wallet Card Section Start**/}
+        <View style={tw`px-6 mt-5 mb-6`}>
+          {/* Main Wallet Card with swipe gesture */}
+          <PanGestureHandler
+            onHandlerStateChange={({ nativeEvent }) => {
+              if (nativeEvent.state === State.END) {
+                // Swipe left (negative translationX) to navigate to Tap-to-Pay
+                if (
+                  nativeEvent.translationX < -50 &&
+                  Math.abs(nativeEvent.velocityX) > 500
+                ) {
+                  navigation.navigate('TapToPayWallet', { tagId: tagId || '' });
+                }
+              }
+            }}
           >
-            {/* Account Header */}
-            <View style={tw`flex-row items-center justify-between mb-4`}>
-              <View style={tw`flex-row items-center`}>
-                <View
-                  style={[
-                    tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
-                    { backgroundColor: colors.primary.bg20 },
-                  ]}
-                >
-                  <Icon name="wallet" size={20} color={colors.primary.light} />
+            <View
+              style={[
+                tw`rounded-3xl shadow-2xl`,
+                {
+                  backgroundColor: colors.primary.bg10,
+                  borderWidth: 1,
+                  borderColor: colors.primary.border30,
+                },
+              ]}
+            >
+              <View style={tw`p-6`}>
+                {/* Swipe Indicator */}
+                <View style={tw`flex-row items-center justify-center mb-2`}>
+                  <View style={tw`flex-row items-center`}>
+                    <Icon
+                      name="chevron-left"
+                      size={16}
+                      color={colors.text.tertiary}
+                    />
+                    <Text
+                      style={[
+                        fonts.pnbRegular,
+                        tw`text-xs mx-2`,
+                        { color: colors.text.tertiary },
+                      ]}
+                    >
+                      Swipe for Tap-to-Pay
+                    </Text>
+                    <Icon
+                      name="chevron-right"
+                      size={16}
+                      color={colors.text.tertiary}
+                    />
+                  </View>
                 </View>
-                <View>
-                  <Text
-                    style={[
-                      fonts.pnbSemiBold,
-                      tw`text-sm`,
-                      { color: colors.text.purpleLight },
-                    ]}
-                  >
-                    Main Wallet
-                  </Text>
+
+                {/* Account Header */}
+                <View style={tw`flex-row items-center justify-between mb-4`}>
+                  <View style={tw`flex-row items-center`}>
+                    <View
+                      style={[
+                        tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                        { backgroundColor: colors.primary.bg20 },
+                      ]}
+                    >
+                      <Icon
+                        name="wallet"
+                        size={20}
+                        color={colors.primary.light}
+                      />
+                    </View>
+                    <View>
+                      <Text
+                        style={[
+                          fonts.pnbSemiBold,
+                          tw`text-sm`,
+                          { color: colors.text.purpleLight },
+                        ]}
+                      >
+                        Main Wallet
+                      </Text>
+                      <Text
+                        style={[
+                          fonts.pnbRegular,
+                          tw`text-xs`,
+                          { color: colors.text.secondary },
+                        ]}
+                      >
+                        Account 1
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity style={tw`p-2`}>
+                    <Icon
+                      name="dots-vertical"
+                      size={20}
+                      color={colors.primary.light}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Balance Display */}
+                <View style={tw`mb-5`}>
                   <Text
                     style={[
                       fonts.pnbRegular,
-                      tw`text-xs`,
+                      tw`text-sm mb-1`,
                       { color: colors.text.secondary },
                     ]}
                   >
-                    Account 1
+                    Total Balance
                   </Text>
-                </View>
-              </View>
-              <TouchableOpacity style={tw`p-2`}>
-                <Icon
-                  name="dots-vertical"
-                  size={20}
-                  color={colors.primary.light}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Balance Display */}
-            <View style={tw`mb-5`}>
-              <Text
-                style={[
-                  fonts.pnbRegular,
-                  tw`text-sm mb-1`,
-                  { color: colors.text.secondary },
-                ]}
-              >
-                Total Balance
-              </Text>
-              <Text
-                style={[
-                  fonts.pnbBold,
-                  tw`text-5xl`,
-                  { color: colors.text.primary },
-                ]}
-              >
-                $
-                {totalValue.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </Text>
-              <View style={tw`flex-row items-center mt-2`}>
-                <Icon
-                  name={
-                    portfolioChange.percentage >= 0
-                      ? 'trending-up'
-                      : 'trending-down'
-                  }
-                  size={14}
-                  color={
-                    portfolioChange.percentage >= 0
-                      ? colors.status.success
-                      : colors.status.error
-                  }
-                />
-                <Text
-                  style={[
-                    fonts.pnbSemiBold,
-                    tw`text-xs ml-1`,
-                    {
-                      color:
-                        portfolioChange.percentage >= 0
-                          ? colors.status.success
-                          : colors.status.error,
-                    },
-                  ]}
-                >
-                  {portfolioChange.percentage >= 0 ? '+' : ''}
-                  {portfolioChange.percentage.toFixed(2)}% ($
-                  {portfolioChange.value >= 0 ? '+' : ''}
-                  {portfolioChange.value.toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                  )
-                </Text>
-                <Text
-                  style={[
-                    fonts.pnbRegular,
-                    tw`text-xs ml-1`,
-                    { color: colors.text.tertiary },
-                  ]}
-                >
-                  Since last update
-                </Text>
-              </View>
-            </View>
-
-            {/* Action Buttons */}
-            <View style={tw`flex-row gap-3`}>
-              <View style={tw`flex-1`}>
-                <TouchableOpacity
-                  onPress={() => setShowSendModal(true)}
-                  style={[
-                    tw`rounded-2xl py-3 flex-row items-center justify-center`,
-                    { backgroundColor: colors.primary.bg80 },
-                  ]}
-                  activeOpacity={0.8}
-                >
-                  <Icon name="arrow-up" size={18} color={colors.text.primary} />
                   <Text
                     style={[
-                      fonts.pnbSemiBold,
-                      tw`ml-2`,
+                      fonts.pnbBold,
+                      tw`text-5xl`,
                       { color: colors.text.primary },
                     ]}
                   >
-                    Send
+                    $
+                    {totalValue.toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </Text>
-                </TouchableOpacity>
-              </View>
-              <View style={tw`flex-1`}>
-                <TouchableOpacity
-                  onPress={() => setShowReceiveModal(true)}
-                  style={[
-                    tw`rounded-2xl py-3 flex-row items-center justify-center border-2`,
-                    { borderColor: colors.primary.border50 },
-                  ]}
-                  activeOpacity={0.8}
-                >
-                  <Icon
-                    name="arrow-down"
-                    size={18}
-                    color={colors.primary.light}
-                  />
-                  <Text
-                    style={[
-                      fonts.pnbSemiBold,
-                      tw`ml-2`,
-                      { color: colors.text.purpleLight },
-                    ]}
-                  >
-                    Receive
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Quick Stats */}
-            <View
-              style={[
-                tw`flex-row justify-between mt-4 pt-4 border-t`,
-                { borderTopColor: colors.primary.border30 },
-              ]}
-            >
-              <View style={tw`items-center flex-1`}>
-                <Text
-                  style={[
-                    fonts.pnbRegular,
-                    tw`text-xs`,
-                    { color: colors.text.secondary },
-                  ]}
-                >
-                  Assets
-                </Text>
-                <Text
-                  style={[
-                    fonts.pnbSemiBold,
-                    tw`text-base mt-1`,
-                    { color: colors.text.primary },
-                  ]}
-                >
-                  {assets.length}
-                </Text>
-              </View>
-              <View
-                style={[
-                  tw`w-px h-10`,
-                  { backgroundColor: colors.primary.border30 },
-                ]}
-              />
-              <View style={tw`items-center flex-1`}>
-                <Text
-                  style={[
-                    fonts.pnbRegular,
-                    tw`text-xs`,
-                    { color: colors.text.secondary },
-                  ]}
-                >
-                  Networks
-                </Text>
-                <Text
-                  style={[
-                    fonts.pnbSemiBold,
-                    tw`text-base mt-1`,
-                    { color: colors.text.primary },
-                  ]}
-                >
-                  3
-                </Text>
-              </View>
-              <View
-                style={[
-                  tw`w-px h-10`,
-                  { backgroundColor: colors.primary.border30 },
-                ]}
-              />
-              <View style={tw`items-center flex-1`}>
-                <Text
-                  style={[
-                    fonts.pnbRegular,
-                    tw`text-xs`,
-                    { color: colors.text.secondary },
-                  ]}
-                >
-                  24h Change
-                </Text>
-                <Text
-                  style={[
-                    fonts.pnbSemiBold,
-                    tw`text-base mt-1`,
-                    {
-                      color:
+                  <View style={tw`flex-row items-center mt-2`}>
+                    <Icon
+                      name={
+                        portfolioChange.percentage >= 0
+                          ? 'trending-up'
+                          : 'trending-down'
+                      }
+                      size={14}
+                      color={
                         portfolioChange.percentage >= 0
                           ? colors.status.success
-                          : colors.status.error,
-                    },
+                          : colors.status.error
+                      }
+                    />
+                    <Text
+                      style={[
+                        fonts.pnbSemiBold,
+                        tw`text-xs ml-1`,
+                        {
+                          color:
+                            portfolioChange.percentage >= 0
+                              ? colors.status.success
+                              : colors.status.error,
+                        },
+                      ]}
+                    >
+                      {portfolioChange.percentage >= 0 ? '+' : ''}
+                      {portfolioChange.percentage.toFixed(2)}% ($
+                      {portfolioChange.value >= 0 ? '+' : ''}
+                      {portfolioChange.value.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                      )
+                    </Text>
+                    <Text
+                      style={[
+                        fonts.pnbRegular,
+                        tw`text-xs ml-1`,
+                        { color: colors.text.tertiary },
+                      ]}
+                    >
+                      Since last update
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Action Buttons */}
+                <View style={tw`flex-row gap-3 mb-3`}>
+                  <View style={tw`flex-1`}>
+                    <TouchableOpacity
+                      onPress={() => setShowSendModal(true)}
+                      style={[
+                        tw`rounded-2xl py-3 flex-row items-center justify-center`,
+                        { backgroundColor: colors.primary.bg80 },
+                      ]}
+                      activeOpacity={0.8}
+                    >
+                      <Icon
+                        name="arrow-up"
+                        size={18}
+                        color={colors.text.primary}
+                      />
+                      <Text
+                        style={[
+                          fonts.pnbSemiBold,
+                          tw`ml-2`,
+                          { color: colors.text.primary },
+                        ]}
+                      >
+                        Send
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={tw`flex-1`}>
+                    <TouchableOpacity
+                      onPress={() => setShowReceiveModal(true)}
+                      style={[
+                        tw`rounded-2xl py-3 flex-row items-center justify-center border-2`,
+                        { borderColor: colors.primary.border50 },
+                      ]}
+                      activeOpacity={0.8}
+                    >
+                      <Icon
+                        name="arrow-down"
+                        size={18}
+                        color={colors.primary.light}
+                      />
+                      <Text
+                        style={[
+                          fonts.pnbSemiBold,
+                          tw`ml-2`,
+                          { color: colors.text.purpleLight },
+                        ]}
+                      >
+                        Receive
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Quick Stats */}
+                <View
+                  style={[
+                    tw`flex-row justify-between mt-4 pt-4 border-t`,
+                    { borderTopColor: colors.primary.border30 },
                   ]}
                 >
-                  {portfolioChange.percentage >= 0 ? '+' : ''}
-                  {portfolioChange.percentage.toFixed(2)}%
-                </Text>
+                  <View style={tw`items-center flex-1`}>
+                    <Text
+                      style={[
+                        fonts.pnbRegular,
+                        tw`text-xs`,
+                        { color: colors.text.secondary },
+                      ]}
+                    >
+                      Assets
+                    </Text>
+                    <Text
+                      style={[
+                        fonts.pnbSemiBold,
+                        tw`text-base mt-1`,
+                        { color: colors.text.primary },
+                      ]}
+                    >
+                      {assets.length}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      tw`w-px h-10`,
+                      { backgroundColor: colors.primary.border30 },
+                    ]}
+                  />
+                  <View style={tw`items-center flex-1`}>
+                    <Text
+                      style={[
+                        fonts.pnbRegular,
+                        tw`text-xs`,
+                        { color: colors.text.secondary },
+                      ]}
+                    >
+                      Networks
+                    </Text>
+                    <Text
+                      style={[
+                        fonts.pnbSemiBold,
+                        tw`text-base mt-1`,
+                        { color: colors.text.primary },
+                      ]}
+                    >
+                      3
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      tw`w-px h-10`,
+                      { backgroundColor: colors.primary.border30 },
+                    ]}
+                  />
+                  <View style={tw`items-center flex-1`}>
+                    <Text
+                      style={[
+                        fonts.pnbRegular,
+                        tw`text-xs`,
+                        { color: colors.text.secondary },
+                      ]}
+                    >
+                      24h Change
+                    </Text>
+                    <Text
+                      style={[
+                        fonts.pnbSemiBold,
+                        tw`text-base mt-1`,
+                        {
+                          color:
+                            portfolioChange.percentage >= 0
+                              ? colors.status.success
+                              : colors.status.error,
+                        },
+                      ]}
+                    >
+                      {portfolioChange.percentage >= 0 ? '+' : ''}
+                      {portfolioChange.percentage.toFixed(2)}%
+                    </Text>
+                  </View>
+                </View>
               </View>
             </View>
-          </View>
+          </PanGestureHandler>
+        </View>
+        {/** Main Wallet Card Section End**/}
 
-          {/* Tap to Pay Card */}
-          <View style={{ width: Dimensions.get('window').width - 48 }}>
-            <TapToPayCard
-              onTopUp={() => {
-                if (!tapToPayAddress) {
-                  setCustomAlert({
-                    visible: true,
-                    title: 'Initializing',
-                    message:
-                      'Tap-to-Pay wallet is still initializing. Please wait.',
-                    icon: 'clock-alert',
-                    iconColor: colors.status.warning,
-                    buttons: [
-                      {
-                        text: 'OK',
-                        style: 'default',
-                      },
-                    ],
-                  });
-                  return;
-                }
-
-                // Show asset selection
-                setCustomAlert({
-                  visible: true,
-                  title: 'Top Up Wallet',
-                  message: 'Choose asset to transfer to Tap-to-Pay wallet:',
-                  icon: 'wallet-plus',
-                  iconColor: colors.primary.main,
-                  buttons: [
-                    {
-                      text: 'SOL (Max: 1)',
-                      onPress: () => {
-                        const solAsset = assets.find(a => a.id === 'solana');
-                        if (solAsset) {
-                          setSelectedAssetForTransfer(solAsset);
-                          setPrivateKeyForTransfer(privateKeys['solana'] || '');
-                          setShowTopUpModal(true);
-                        } else {
-                          setCustomAlert({
-                            visible: true,
-                            title: 'Asset Not Found',
-                            message: 'SOL not found in your wallet',
-                            icon: 'alert-circle',
-                            iconColor: colors.status.error,
-                            buttons: [{ text: 'OK', style: 'default' }],
-                          });
-                        }
-                      },
-                      style: 'default',
-                    },
-                    {
-                      text: 'USDC (Max: 1,000)',
-                      onPress: () => {
-                        const usdcSolana = assets.find(
-                          a => a.id === 'usd_coin_(solana)',
-                        );
-                        if (usdcSolana) {
-                          setSelectedAssetForTransfer(usdcSolana);
-                          setPrivateKeyForTransfer(privateKeys['solana'] || '');
-                          setShowTopUpModal(true);
-                        } else {
-                          setCustomAlert({
-                            visible: true,
-                            title: 'Asset Not Found',
-                            message: 'USDC (Solana) not found in your wallet',
-                            icon: 'alert-circle',
-                            iconColor: colors.status.error,
-                            buttons: [{ text: 'OK', style: 'default' }],
-                          });
-                        }
-                      },
-                      style: 'default',
-                    },
-                    {
-                      text: 'Cancel',
-                      style: 'cancel',
-                    },
-                  ],
-                });
-              }}
-              onAddressGenerated={address => setTapToPayAddress(address)}
-              onShowAlert={alert =>
-                setCustomAlert({
-                  visible: true,
-                  title: alert.title,
-                  message: alert.message,
-                  icon: alert.icon,
-                  iconColor: alert.iconColor,
-                  buttons: [{ text: 'OK', style: 'default' }],
-                })
-              }
-            />
-          </View>
-        </ScrollView>
-        {/** Wallet Cards Carousel Section End**/}
-
-        <View style={tw`mt-10 mx-5`}>
-          <View style={tw`flex-row items-center justify-between`}>
-            <Text style={[fonts.pnbBold, tw`text-white text-2xl`]}>
-              Assets List
+        {/* Assets List */}
+        <View style={tw`px-6 mt-6`}>
+          <View style={tw`flex-row items-center justify-between mb-4`}>
+            <Text
+              style={[
+                fonts.pnbBold,
+                tw`text-white text-2xl`,
+                { color: colors.text.primary },
+              ]}
+            >
+              Assets
             </Text>
             {lastBalanceUpdate > 0 && (
-              <View style={tw`flex-row items-center`}>
-                <Icon
-                  name="clock-outline"
-                  size={12}
-                  color={colors.text.tertiary}
-                />
-                <Text
-                  style={[
-                    fonts.pnbRegular,
-                    tw`text-xs ml-1`,
-                    { color: colors.text.tertiary },
-                  ]}
-                >
-                  {timeDisplay}
-                </Text>
-              </View>
+              <Text
+                style={[
+                  fonts.pnbRegular,
+                  tw`text-xs`,
+                  { color: colors.text.tertiary },
+                ]}
+              >
+                Updated {timeDisplay}
+              </Text>
             )}
           </View>
-        </View>
-        <View style={tw`mt-2 px-5 pb-4`}>
           <FlatList
             data={assets}
             renderItem={renderAssetItem}
             keyExtractor={keyExtractor}
             scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
           />
         </View>
       </ScrollView>
@@ -1474,15 +1439,18 @@ function Root({ navigation, route }: WalletDashboardProps) {
               : addresses.ethereum || '';
 
           // Save transaction to history
-          await saveTransaction({
-            type: 'send',
-            amount: parseFloat(amount),
-            symbol: selectedAssetForTransfer.symbol,
-            txHash,
-            toAddress: recipientAddress,
-            fromAddress: fromAddr,
-            network,
-          });
+          await saveTransaction(
+            {
+              type: 'send',
+              amount: parseFloat(amount),
+              symbol: selectedAssetForTransfer.symbol,
+              txHash,
+              toAddress: recipientAddress,
+              fromAddress: fromAddr,
+              network,
+            },
+            fromAddr, // Pass wallet address for backend sync
+          );
 
           // Show success modal
           setSuccessTxData({
@@ -1513,15 +1481,18 @@ function Root({ navigation, route }: WalletDashboardProps) {
           if (!selectedAssetForTransfer) return;
 
           // Save transaction to history
-          await saveTransaction({
-            type: 'send',
-            amount: parseFloat(amount),
-            symbol: selectedAssetForTransfer.symbol,
-            txHash,
-            toAddress: recipientAddress,
-            fromAddress: addresses.solana || '',
-            network: 'solana',
-          });
+          await saveTransaction(
+            {
+              type: 'send',
+              amount: parseFloat(amount),
+              symbol: selectedAssetForTransfer.symbol,
+              txHash,
+              toAddress: recipientAddress,
+              fromAddress: addresses.solana || '',
+              network: 'solana',
+            },
+            addresses.solana || '', // Pass wallet address for backend sync
+          );
 
           // Show success modal
           setSuccessTxData({

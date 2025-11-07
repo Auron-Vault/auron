@@ -5,8 +5,8 @@ import { getCachedImageUrl, cacheImageUrl } from '../utils/imageCacheManager';
 const COINGECKO_BASE_URL = 'https://api.coingecko.com/api/v3';
 const API_KEY = COIN_GECKO_API_KEY || '';
 
-// Rate limiting: 1 request per minute for Demo API
-const RATE_LIMIT_MS = 60 * 1000; // 60 seconds
+// Rate limiting: 10 requests per minute (10 rpm)
+const RATE_LIMIT_MS = 6 * 1000; // 6 seconds (60s / 10 req = 6s per request)
 let lastRequestTime = 0;
 let cachedPrices: { [key: string]: CoinPrice } = {};
 let previousPrices: { [key: string]: number } = {}; // Store previous prices for change calculation
@@ -98,7 +98,8 @@ const isCacheValid = (): boolean => {
 
 /**
  * Fetch prices for multiple coins from CoinGecko API
- * Respects 1 req/min rate limit and caches results
+ * Respects 10 req/min rate limit and caches results
+ * Returns cached data immediately if available, then updates in background if needed
  */
 export const fetchCoinPrices = async (
   coinIds: string[],
@@ -110,8 +111,25 @@ export const fetchCoinPrices = async (
   } = {},
 ): Promise<PriceResponse> => {
   try {
-    // Return cached data if still valid
+    // Return cached data immediately if still valid
     if (isCacheValid()) {
+      console.log('[CoinGecko] Returning cached prices');
+      return cachedPrices;
+    }
+
+    // Check if we have stale cache to return while fetching fresh data
+    const hasStaleCache = Object.keys(cachedPrices).length > 0;
+
+    // If within rate limit window and we have stale cache, return it immediately
+    // Fresh data will be fetched on next call after rate limit expires
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+
+    if (timeSinceLastRequest < RATE_LIMIT_MS && hasStaleCache) {
+      const waitTime = Math.ceil((RATE_LIMIT_MS - timeSinceLastRequest) / 1000);
+      console.log(
+        `[CoinGecko] Rate limited. Returning stale cache. Fresh data in ${waitTime}s`,
+      );
       return cachedPrices;
     }
 
@@ -120,7 +138,7 @@ export const fetchCoinPrices = async (
       .map(id => assetIdToCoinGeckoId[id] || tickerToCoinGeckoId[id] || id)
       .filter((id, index, self) => self.indexOf(id) === index); // Remove duplicates
 
-    // Wait for rate limit
+    // Wait for rate limit before making fresh request
     await waitForRateLimit();
 
     const params = new URLSearchParams({
@@ -134,6 +152,7 @@ export const fetchCoinPrices = async (
 
     const url = `${COINGECKO_BASE_URL}/simple/price?${params.toString()}&x_cg_demo_api_key=${API_KEY}`;
 
+    console.log('[CoinGecko] Fetching fresh prices from API...');
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -174,6 +193,7 @@ export const fetchCoinPrices = async (
     // Update cache
     cachedPrices = enrichedData;
     cacheTimestamp = Date.now();
+    console.log('[CoinGecko] Fresh prices cached');
 
     return enrichedData;
   } catch (error) {
@@ -181,6 +201,7 @@ export const fetchCoinPrices = async (
 
     // Return cached data if available, even if expired
     if (Object.keys(cachedPrices).length > 0) {
+      console.log('[CoinGecko] Returning cached prices after error');
       return cachedPrices;
     }
 

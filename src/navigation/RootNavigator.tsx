@@ -7,6 +7,7 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import PinInputScreen from '../screens/PinInputScreen';
 import WalletDashboard from '../screens/WalletDashboard';
 import AssetDetailScreen from '../screens/AssetDetailScreen';
+import TapToPayWalletScreen from '../screens/TapToPayWalletScreen';
 import { RootStackParamList } from './types';
 import { startTiming, endTiming } from '../utils/performanceMonitor';
 
@@ -64,6 +65,14 @@ function App() {
               listeners={{
                 focus: () => startTiming('Screen - AssetDetail'),
                 blur: () => endTiming('Screen - AssetDetail'),
+              }}
+            />
+            <Stack.Screen
+              name="TapToPayWallet"
+              component={TapToPayWalletScreen}
+              listeners={{
+                focus: () => startTiming('Screen - TapToPayWallet'),
+                blur: () => endTiming('Screen - TapToPayWallet'),
               }}
             />
           </Stack.Navigator>

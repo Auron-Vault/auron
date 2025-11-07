@@ -272,15 +272,18 @@ const TransferModal: React.FC<TransferModalProps> = ({
 
       if (result.success && result.txHash) {
         // Save transaction to history
-        await saveTransaction({
-          type: 'send',
-          amount: parseFloat(amount),
-          symbol: asset.symbol,
-          txHash: result.txHash,
-          toAddress: recipientAddress,
-          fromAddress: fromAddress,
-          network: asset.name,
-        });
+        await saveTransaction(
+          {
+            type: 'send',
+            amount: parseFloat(amount),
+            symbol: asset.symbol,
+            txHash: result.txHash,
+            toAddress: recipientAddress,
+            fromAddress: fromAddress,
+            network: asset.name,
+          },
+          fromAddress, // Pass wallet address for backend sync
+        );
 
         setCustomAlert({
           visible: true,

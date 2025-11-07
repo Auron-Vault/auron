@@ -1,6 +1,11 @@
 import { Asset } from '../context/WalletContext';
 import { startTiming, endTiming } from '../utils/performanceMonitor';
-import { ETHEREUM_RPC_URL, BSC_RPC_URL, SOLANA_RPC_URL } from '@env';
+import {
+  ETHEREUM_RPC_URL,
+  BSC_RPC_URL,
+  SOLANA_RPC_URL,
+  BITCOIN_RPC_URL,
+} from '@env';
 
 /**
  * Balance Service
@@ -36,14 +41,40 @@ export interface BalanceResult {
 
 /**
  * Fetch Bitcoin balance
- * Uses multiple free Bitcoin APIs with fallback
+ * Uses Chainstack RPC endpoint first, then falls back to public APIs
  */
 export const fetchBitcoinBalance = async (
   address: string,
 ): Promise<BalanceResult> => {
   // Array of Bitcoin balance APIs to try
   const apis = [
-    // Blockchain.info API
+    // Chainstack Bitcoin RPC (Primary)
+    {
+      name: 'Chainstack RPC',
+      fetch: async () => {
+        if (!BITCOIN_RPC_URL) {
+          throw new Error('BITCOIN_RPC_URL not configured');
+        }
+        const response = await fetch(BITCOIN_RPC_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'getaddressbalance',
+            params: [address],
+            id: 1,
+          }),
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message || 'RPC error');
+
+        // Response format: { balance: satoshis, received: satoshis }
+        const satoshis = data.result?.balance || 0;
+        return satoshis / 100000000; // Convert to BTC
+      },
+    },
+    // Blockchain.info API (Fallback 1)
     {
       name: 'Blockchain.info',
       fetch: async () => {
@@ -55,7 +86,7 @@ export const fetchBitcoinBalance = async (
         return satoshis / 100000000; // Convert to BTC
       },
     },
-    // Blockstream API
+    // Blockstream API (Fallback 2)
     {
       name: 'Blockstream',
       fetch: async () => {
@@ -70,7 +101,7 @@ export const fetchBitcoinBalance = async (
         return satoshis / 100000000; // Convert to BTC
       },
     },
-    // Mempool.space API
+    // Mempool.space API (Fallback 3)
     {
       name: 'Mempool.space',
       fetch: async () => {

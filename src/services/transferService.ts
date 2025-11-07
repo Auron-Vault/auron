@@ -1306,6 +1306,46 @@ export const transferSolanaSPLToken = async (
       feePayer: fromKeypair.publicKey,
     });
 
+    // Check if source token account exists
+    const fromTokenAccountInfo = await connection.getAccountInfo(
+      fromTokenAccount,
+    );
+
+    if (!fromTokenAccountInfo) {
+      throw new Error(
+        `You don't have a ${
+          asset?.symbol || 'USDC'
+        } token account. Please receive some ${
+          asset?.symbol || 'USDC'
+        } first to initialize your token account.`,
+      );
+    }
+
+    // Verify sender has sufficient balance
+    try {
+      const fromTokenAccountData = await connection.getTokenAccountBalance(
+        fromTokenAccount,
+      );
+      const availableBalance = fromTokenAccountData.value.uiAmount || 0;
+
+      console.log(
+        `Source token account balance: ${availableBalance} ${
+          asset?.symbol || 'USDC'
+        }`,
+      );
+
+      if (availableBalance < amount) {
+        throw new Error(
+          `Insufficient ${
+            asset?.symbol || 'USDC'
+          } balance. Available: ${availableBalance}, Required: ${amount}`,
+        );
+      }
+    } catch (err) {
+      console.error('Error checking token balance:', err);
+      // Continue anyway if we can't check balance
+    }
+
     // Check if destination token account exists
     const toTokenAccountInfo = await connection.getAccountInfo(toTokenAccount);
 

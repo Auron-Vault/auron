@@ -21,6 +21,7 @@ import { Wallet, toUtf8Bytes, keccak256, toBeArray, Mnemonic } from 'ethers';
 import Button from '../components/Button';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { useWallet } from '../context/WalletContext';
+import { USE_DEV_MODE, DEV_TAG_ID, DEV_PIN } from '@env';
 
 function WelcomeScreen({
   navigation,
@@ -59,7 +60,45 @@ function Root({ navigation }: { navigation: NavigationProp<ParamListBase> }) {
   console.log('Current tagId in context:', tagId);
   console.log('Current addresses in context:', addresses);
 
+  // Development Mode - Auto-navigate with fixed credentials
   useEffect(() => {
+    const isDevMode = USE_DEV_MODE === 'true';
+    console.log(
+      '[DevMode] USE_DEV_MODE:',
+      USE_DEV_MODE,
+      'isDevMode:',
+      isDevMode,
+    );
+
+    if (isDevMode) {
+      console.log(
+        '[DevMode] Development mode enabled - using fixed credentials',
+      );
+      console.log('[DevMode] DEV_TAG_ID:', DEV_TAG_ID);
+      console.log('[DevMode] DEV_PIN:', DEV_PIN);
+
+      // Auto-navigate to WalletDashboard with dev credentials after 1 second
+      const timer = setTimeout(() => {
+        console.log(
+          '[DevMode] Navigating to WalletDashboard with dev credentials',
+        );
+        navigation.navigate('WalletDashboard', {
+          tagId: DEV_TAG_ID,
+          pin: DEV_PIN,
+        });
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [navigation]);
+
+  useEffect(() => {
+    // Skip NFC reading in dev mode
+    if (USE_DEV_MODE === 'true') {
+      console.log('[DevMode] Skipping NFC initialization');
+      return;
+    }
+
     if (Platform.OS === 'android') {
       readNfc();
     }
@@ -71,6 +110,13 @@ function Root({ navigation }: { navigation: NavigationProp<ParamListBase> }) {
 
   useEffect(() => {
     const handleNavigation = async () => {
+      // Skip validation entirely in development mode
+      const isDevMode = USE_DEV_MODE === 'true';
+      if (isDevMode) {
+        console.log('[DevMode] Validation bypassed - development mode enabled');
+        return;
+      }
+
       console.log('tagId changed:', tagId);
 
       if (tagId && tagId !== 'No ID found' && !tagId.startsWith('Error')) {
@@ -393,7 +439,50 @@ function Root({ navigation }: { navigation: NavigationProp<ParamListBase> }) {
 
         {/* NFC Section */}
         <View style={tw`items-center mt-4 px-6`}>
-          {Platform.OS === 'ios' ? (
+          {USE_DEV_MODE === 'true' ? (
+            <>
+              <View
+                style={[
+                  tw`bg-blue-600 rounded-full p-6 mb-3`,
+                  {
+                    shadowColor: '#3B82F6',
+                    shadowOffset: { width: 0, height: 10 },
+                    shadowOpacity: 0.5,
+                    shadowRadius: 20,
+                    elevation: 15,
+                  },
+                ]}
+              >
+                <View style={tw`w-20 h-20 items-center justify-center`}>
+                  <Text style={tw`text-6xl`}>🛠️</Text>
+                </View>
+              </View>
+              <Text
+                style={[
+                  fonts.pnbSemiBold,
+                  tw`text-white text-xl text-center mb-2`,
+                ]}
+              >
+                Development Mode
+              </Text>
+              <Text
+                style={[
+                  fonts.pnbRegular,
+                  tw`text-blue-400 text-base text-center mb-1`,
+                ]}
+              >
+                Auto-loading with fixed credentials
+              </Text>
+              <Text
+                style={[
+                  fonts.pnbRegular,
+                  tw`text-gray-500 text-sm text-center`,
+                ]}
+              >
+                Tag ID: {DEV_TAG_ID} • PIN: {DEV_PIN}
+              </Text>
+            </>
+          ) : Platform.OS === 'ios' ? (
             <>
               <View
                 style={[

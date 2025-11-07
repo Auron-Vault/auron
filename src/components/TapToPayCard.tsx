@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
+  Clipboard,
 } from 'react-native';
 import tw from 'twrnc';
 import { fonts } from '../constants/fonts';
@@ -16,11 +16,25 @@ import {
   fetchSolanaSPLTokenBalance,
 } from '../services/balanceService';
 import { TAP_TO_PAY_PIN } from '@env';
+import {
+  saveWalletId,
+  getTransactionHistory,
+  getTransactionHistoryWithInvoices,
+  TransactionHistoryItem,
+} from '../utils/transactionHistory';
+import InvoiceModal from './InvoiceModal';
+import PayInvoiceModal from './PayInvoiceModal';
+import TopUpTapToPayModal from './TopUpTapToPayModal';
+import WithdrawFromTapToPayModal from './WithdrawFromTapToPayModal';
+import { Asset } from '../context/WalletContext';
+import { useWallet } from '../context/WalletContext';
+import apiService from '../services/apiService';
 
 interface TapToPayCardProps {
   tagId?: string;
   onTopUp?: () => void;
   onAddressGenerated?: (address: string) => void;
+  onTransactionsUpdate?: (transactions: TransactionHistoryItem[]) => void;
   onShowAlert?: (alert: {
     title: string;
     message: string;
@@ -33,20 +47,57 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
   tagId,
   onTopUp,
   onAddressGenerated,
+  onTransactionsUpdate,
   onShowAlert,
 }) => {
-  const [isLoading, setIsLoading] = useState(true);
+  // Use context for persistent state
+  const {
+    tapToPayAddress: contextAddress,
+    setTapToPayAddress: setContextAddress,
+    tapToPayInitialized,
+    setTapToPayInitialized,
+  } = useWallet();
+
+  const [isLoading, setIsLoading] = useState(!tapToPayInitialized);
   const [solBalance, setSolBalance] = useState(0);
   const [usdcBalance, setUsdcBalance] = useState(0);
-  const [solanaAddress, setSolanaAddress] = useState('');
+  const [solanaAddress, setSolanaAddress] = useState(contextAddress || '');
   const [lastUpdate, setLastUpdate] = useState<number>(0);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [invoiceMode, setInvoiceMode] = useState<'direct' | 'online'>('direct');
+  const [showPayInvoiceModal, setShowPayInvoiceModal] = useState(false);
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [privateKey, setPrivateKey] = useState('');
 
-  // Predefined PIN from .env
-  const PIN = TAP_TO_PAY_PIN;
-  const TAG = tagId || 'tap_to_pay_default';
+  // Predefined PIN from .env - memoize to prevent re-initialization
+  const PIN = useRef(TAP_TO_PAY_PIN).current;
+  const TAG = useRef(tagId || 'tap_to_pay_default').current;
 
-  // Generate wallet on mount
+  // Generate wallet on mount ONCE - defer heavy operations for smooth navigation
   useEffect(() => {
+    // Check if already initialized in context
+    if (tapToPayInitialized && contextAddress) {
+      console.log(
+        '[TapToPayCard] Already initialized from context:',
+        contextAddress,
+      );
+      setSolanaAddress(contextAddress);
+      setIsLoading(false);
+
+      // Notify parent and fetch data in background
+      if (onAddressGenerated) {
+        onAddressGenerated(contextAddress);
+      }
+
+      // Fetch balances and transactions in background
+      setTimeout(async () => {
+        await fetchBalances(contextAddress);
+        await loadTransactions(contextAddress);
+      }, 100);
+
+      return;
+    }
     const initializeWallet = async () => {
       try {
         setIsLoading(true);
@@ -57,16 +108,28 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
         const address = wallets.solana;
 
         setSolanaAddress(address);
+        setContextAddress(address); // Save to context
+        setTapToPayInitialized(true); // Mark as initialized in context
 
-        // Notify parent component
+        // Notify parent component immediately
         if (onAddressGenerated) {
           onAddressGenerated(address);
         }
 
-        // Fetch balances
-        await fetchBalances(address);
-
+        // Stop loading to show UI quickly
         setIsLoading(false);
+
+        // Defer heavy operations to avoid blocking navigation
+        setTimeout(async () => {
+          // Register wallet with backend (async, non-blocking)
+          saveWalletId(address, 'tap-to-pay').catch(err =>
+            console.warn('Failed to register tap-to-pay wallet:', err),
+          );
+
+          // Fetch balances and transactions in background
+          await fetchBalances(address);
+          await loadTransactions(address);
+        }, 100); // 100ms delay to allow screen transition to complete
       } catch (error) {
         console.error('Failed to initialize Tap-to-Pay wallet:', error);
         if (onShowAlert) {
@@ -81,8 +144,30 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
       }
     };
 
-    initializeWallet();
-  }, [PIN, TAG]);
+    // Defer initialization slightly to allow navigation animation to complete
+    const timer = setTimeout(() => {
+      initializeWallet();
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, []); // Run ONLY on mount - empty dependency array
+
+  // Get private key when address is ready
+  useEffect(() => {
+    const getPrivKey = async () => {
+      if (solanaAddress) {
+        try {
+          const { getPrivateKey } = await import('../hooks/CreateWallet');
+          const combinedSeed = `${TAG}-${PIN}`;
+          const privKey = await getPrivateKey(combinedSeed, 'solana');
+          setPrivateKey(privKey);
+        } catch (error) {
+          console.error('Failed to get private key:', error);
+        }
+      }
+    };
+    getPrivKey();
+  }, [solanaAddress, TAG, PIN]);
 
   // Fetch balances
   const fetchBalances = useCallback(async (address: string) => {
@@ -104,13 +189,39 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
     }
   }, []);
 
+  // Load transaction history
+  const loadTransactions = useCallback(
+    async (address: string) => {
+      try {
+        const history = await getTransactionHistoryWithInvoices(address);
+        // Filter only transactions for this address
+        const filtered = history.filter(
+          tx => tx.fromAddress === address || tx.toAddress === address,
+        );
+
+        console.log(
+          `[TapToPayCard] Loaded ${filtered.length} transactions (including invoices)`,
+        );
+
+        // Notify parent component with updated transactions
+        if (onTransactionsUpdate) {
+          onTransactionsUpdate(filtered);
+        }
+      } catch (error) {
+        console.error('Failed to load Tap-to-Pay transactions:', error);
+      }
+    },
+    [onTransactionsUpdate],
+  );
+
   // Manual refresh
   const handleRefresh = useCallback(async () => {
     if (!solanaAddress) return;
     setIsLoading(true);
     await fetchBalances(solanaAddress);
+    await loadTransactions(solanaAddress);
     setIsLoading(false);
-  }, [solanaAddress, fetchBalances]);
+  }, [solanaAddress, fetchBalances, loadTransactions]);
 
   // Auto refresh every 30 seconds
   useEffect(() => {
@@ -118,10 +229,11 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
 
     const interval = setInterval(() => {
       fetchBalances(solanaAddress);
+      loadTransactions(solanaAddress);
     }, 30000); // 30 seconds
 
     return () => clearInterval(interval);
-  }, [solanaAddress, fetchBalances]);
+  }, [solanaAddress, fetchBalances, loadTransactions]);
 
   // Format time since last update
   const getTimeDisplay = useCallback(() => {
@@ -132,12 +244,19 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
     return `${minutes}m ago`;
   }, [lastUpdate]);
 
+  // Handle successful invoice payment
+  const handlePaymentSuccess = async (txHash: string, invoiceId: string) => {
+    // Refresh balances and transactions
+    await fetchBalances(solanaAddress);
+    await loadTransactions(solanaAddress);
+  };
+
   const totalUsdValue = usdcBalance * 1.0 + solBalance * 200; // Rough estimate
 
   return (
     <View
       style={[
-        tw`mx-6 mt-4 rounded-3xl p-6 shadow-2xl`,
+        tw`mx-4 mt-0 rounded-3xl p-6 shadow-2xl`,
         {
           backgroundColor: colors.primary.bg10,
           borderWidth: 1,
@@ -146,6 +265,15 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
       ]}
     >
       {/* Header */}
+      <View style={tw`px-6`}>
+        <View style={tw`flex-row items-center justify-center mb-2`}>
+          <Icon name="chevron-left" size={16} color="#666" />
+          <Text style={[fonts.pnbRegular, tw`text-xs mx-2`, { color: '#666' }]}>
+            Swipe to go back
+          </Text>
+          <Icon name="chevron-right" size={16} color="#666" />
+        </View>
+      </View>
       <View style={tw`flex-row justify-between items-center mb-4`}>
         <View style={tw`flex-row items-center`}>
           <View
@@ -239,9 +367,10 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
                   </Text>
                 )}
               </View>
-              {onTopUp && (
+              <View style={tw`gap-2`}>
+                {/* Top Up Button */}
                 <TouchableOpacity
-                  onPress={onTopUp}
+                  onPress={() => setShowTopUpModal(true)}
                   style={[
                     tw`px-4 py-2 rounded-xl flex-row items-center`,
                     { backgroundColor: colors.primary.bg80 },
@@ -263,7 +392,45 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
                     Top Up
                   </Text>
                 </TouchableOpacity>
-              )}
+
+                {/* Withdraw Button */}
+                <TouchableOpacity
+                  onPress={async () => {
+                    // Get private key for tap-to-pay wallet
+                    const { getPrivateKey } = await import(
+                      '../hooks/CreateWallet'
+                    );
+                    const combinedSeed = `${TAG}-${PIN}`;
+                    const privKey = await getPrivateKey(combinedSeed, 'solana');
+                    setPrivateKey(privKey);
+                    setShowWithdrawModal(true);
+                  }}
+                  style={[
+                    tw`px-4 py-2 rounded-xl flex-row items-center`,
+                    {
+                      backgroundColor: colors.background.gray800,
+                      borderWidth: 1,
+                      borderColor: colors.primary.border30,
+                    },
+                  ]}
+                  activeOpacity={0.8}
+                >
+                  <Icon
+                    name="arrow-up-circle"
+                    size={16}
+                    color={colors.text.primary}
+                  />
+                  <Text
+                    style={[
+                      fonts.pnbSemiBold,
+                      tw`text-sm ml-1`,
+                      { color: colors.text.primary },
+                    ]}
+                  >
+                    Withdraw
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
 
@@ -363,7 +530,7 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
           </View>
 
           {/* Wallet Address */}
-          <View
+          {/* <View
             style={[
               tw`p-3 rounded-xl flex-row items-center justify-between`,
               { backgroundColor: colors.background.gray800 },
@@ -393,7 +560,7 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
             <TouchableOpacity
               onPress={() => {
                 if (solanaAddress) {
-                  require('react-native').Clipboard.setString(solanaAddress);
+                  Clipboard.setString(solanaAddress);
                   if (onShowAlert) {
                     onShowAlert({
                       title: 'Copied!',
@@ -407,9 +574,187 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
             >
               <Icon name="content-copy" size={18} color={colors.primary.main} />
             </TouchableOpacity>
+          </View> */}
+
+          {/* Invoice Buttons */}
+          <View style={tw`flex-row gap-3 mt-4`}>
+            <TouchableOpacity
+              style={[
+                tw`flex-1 py-3 rounded-xl flex-row items-center justify-center`,
+                { backgroundColor: colors.primary.main },
+              ]}
+              onPress={() => {
+                setInvoiceMode('direct');
+                setShowInvoiceModal(true);
+              }}
+            >
+              <Icon name="qrcode-scan" size={20} color="#000" />
+              <Text
+                style={[
+                  fonts.pnbSemiBold,
+                  tw`ml-2`,
+                  { color: '#000', fontSize: 14 },
+                ]}
+              >
+                Direct Invoice
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                tw`flex-1 py-3 rounded-xl flex-row items-center justify-center`,
+                { backgroundColor: colors.primary.main },
+              ]}
+              onPress={() => {
+                setInvoiceMode('online');
+                setShowInvoiceModal(true);
+              }}
+            >
+              <Icon name="web" size={20} color="#FFF" />
+              <Text
+                style={[
+                  fonts.pnbSemiBold,
+                  tw`ml-2`,
+                  { color: '#FFF', fontSize: 14 },
+                ]}
+              >
+                Online Invoice
+              </Text>
+            </TouchableOpacity>
           </View>
+
+          {/* Pay Invoice Button */}
+          <TouchableOpacity
+            style={[
+              tw`py-3 rounded-xl flex-row items-center justify-center mt-3`,
+              {
+                backgroundColor: colors.background.elevated,
+                borderWidth: 1,
+                borderColor: colors.border.purple,
+              },
+            ]}
+            onPress={() => setShowPayInvoiceModal(true)}
+          >
+            {/* <Icon name="receipt-text" size={20} color={colors.primary.main} /> */}
+            <Icon
+              name="arrow-right"
+              size={16}
+              color={colors.primary.main}
+              style={tw`mx-2`}
+            />
+            <Text
+              style={[
+                fonts.pnbSemiBold,
+                tw`ml-2`,
+                { color: colors.primary.main, fontSize: 14 },
+              ]}
+            >
+              Pay Invoice
+            </Text>
+          </TouchableOpacity>
         </>
       )}
+
+      {/* Invoice Modal */}
+      <InvoiceModal
+        visible={showInvoiceModal}
+        onClose={() => setShowInvoiceModal(false)}
+        payeeAddress={solanaAddress}
+        mode={invoiceMode}
+        onShowAlert={onShowAlert}
+        onInvoiceCreated={() => {
+          // Refresh transactions to show new invoice
+          loadTransactions(solanaAddress);
+        }}
+      />
+
+      {/* Pay Invoice Modal */}
+      <PayInvoiceModal
+        visible={showPayInvoiceModal}
+        onClose={() => setShowPayInvoiceModal(false)}
+        payerAddress={solanaAddress}
+        privateKey={privateKey}
+        usdcBalance={usdcBalance}
+        onPaymentSuccess={handlePaymentSuccess}
+        onShowAlert={onShowAlert}
+        onInvoiceFetched={() => {
+          // Refresh transactions to show fetched invoice
+          loadTransactions(solanaAddress);
+        }}
+      />
+
+      {/* Top Up Modal */}
+      <TopUpTapToPayModal
+        visible={showTopUpModal}
+        onClose={() => setShowTopUpModal(false)}
+        tapToPayAddress={solanaAddress}
+        onSuccess={message => {
+          // Ensure modal is closed first
+          setShowTopUpModal(false);
+
+          // Wait for modal to fully close before showing alert
+          setTimeout(() => {
+            if (onShowAlert) {
+              onShowAlert({
+                title: 'Success',
+                message,
+                icon: 'check-circle',
+                iconColor: colors.status.success,
+              });
+            }
+            // Refresh balances after successful top-up
+            handleRefresh();
+          }, 500);
+        }}
+        onError={message => {
+          if (onShowAlert) {
+            onShowAlert({
+              title: 'Error',
+              message,
+              icon: 'alert-circle',
+              iconColor: colors.status.error,
+            });
+          }
+        }}
+      />
+
+      {/* Withdraw Modal */}
+      <WithdrawFromTapToPayModal
+        visible={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+        tapToPayAddress={solanaAddress}
+        tapToPayPrivateKey={privateKey}
+        tapToPaySolBalance={solBalance}
+        tapToPayUsdcBalance={usdcBalance}
+        onSuccess={message => {
+          // Ensure modal is closed first
+          setShowWithdrawModal(false);
+
+          // Wait for modal to fully close before showing alert
+          setTimeout(() => {
+            if (onShowAlert) {
+              onShowAlert({
+                title: 'Success',
+                message,
+                icon: 'check-circle',
+                iconColor: colors.status.success,
+              });
+            }
+            // Refresh balances after successful withdrawal
+            handleRefresh();
+          }, 500);
+        }}
+        onError={message => {
+          if (onShowAlert) {
+            onShowAlert({
+              title: 'Error',
+              message,
+              icon: 'alert-circle',
+              iconColor: colors.status.error,
+            });
+          }
+        }}
+      />
     </View>
   );
 };

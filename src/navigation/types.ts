@@ -6,6 +6,7 @@ export type RootStackParamList = {
   PinInput: { tagId: string }; // Receives tagId from WelcomeScreen
   WalletDashboard: { tagId: string; pin: string } | undefined; // Receives tagId and PIN, or undefined for direct navigation
   AssetDetail: { assetId: string; tagId: string }; // Asset details screen
+  TapToPayWallet: { tagId?: string }; // Tap-to-Pay wallet screen
 };
 
 // Define the navigation prop type for screens that need it

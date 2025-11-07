@@ -143,7 +143,7 @@ const SwipeableAssetCard: React.FC<SwipeableAssetCardProps> = ({
             activeOpacity={0.8}
             onPress={onPress}
             style={[
-              tw`my-1 h-16 flex-row rounded-2xl shadow-lg items-center p-2`,
+              tw`my-1 flex-row rounded-2xl shadow-lg py-3 px-4`,
               {
                 borderWidth: 1,
                 borderColor: colors.border.primary,
@@ -151,22 +151,22 @@ const SwipeableAssetCard: React.FC<SwipeableAssetCardProps> = ({
               },
             ]}
           >
-            <Image source={item.logo} style={tw`h-12 w-12 my-2 mx-1`} />
-            <View style={tw`flex-col items-start ml-2`}>
+            <Image source={item.logo} style={tw`h-12 w-12 mr-3 self-center`} />
+            <View style={tw`flex-col items-start flex-1 justify-center py-1`}>
               <Text
                 style={[
                   fonts.pnbSemiBold,
-                  tw`text-lg mt-1`,
+                  tw`text-base`,
                   { color: colors.text.primary },
                 ]}
               >
                 {item.name}
               </Text>
-              <View style={tw`flex-row items-center`}>
+              <View style={tw`flex-row items-center flex-wrap`}>
                 <Text
                   style={[
                     fonts.pnbRegular,
-                    tw`text-base`,
+                    tw`text-sm`,
                     { color: colors.text.secondary },
                   ]}
                 >
@@ -207,11 +207,11 @@ const SwipeableAssetCard: React.FC<SwipeableAssetCardProps> = ({
                 )}
               </View>
             </View>
-            <View style={tw`flex-1 items-end mr-2`}>
+            <View style={tw`items-end justify-center ml-3 py-1`}>
               <Text
                 style={[
                   fonts.pnbSemiBold,
-                  tw`text-lg mt-1`,
+                  tw`text-base`,
                   { color: colors.text.primary },
                 ]}
               >
@@ -223,8 +223,8 @@ const SwipeableAssetCard: React.FC<SwipeableAssetCardProps> = ({
               </Text>
               <Text
                 style={[
-                  fonts.pnbSemiBold,
-                  tw`text-lg`,
+                  fonts.pnbRegular,
+                  tw`text-sm`,
                   { color: colors.text.secondary },
                 ]}
               >
