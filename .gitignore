@@ -69,6 +69,10 @@ yarn-error.log
 # Unimportant files
 BUILD_OPTIMIZATION.md
 generate-icons.js
+DEV_MODE.md
+InvoiceFlow.md
+/server-temp/
+API_INTEGRATION.md
 
 
 # Yarn
