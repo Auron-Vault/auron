@@ -77,10 +77,8 @@ const TapToPayTransactionHistory: React.FC<TapToPayTransactionHistoryProps> = ({
         <FlatList
           data={transactions}
           keyExtractor={item => item.id}
-          scrollEnabled={true}
-          nestedScrollEnabled={true}
-          showsVerticalScrollIndicator={true}
-          style={{ maxHeight: 400 }}
+          scrollEnabled={false}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <TouchableOpacity
               activeOpacity={0.7}

@@ -62,10 +62,18 @@ function Root({ navigation }: { navigation: NavigationProp<ParamListBase> }) {
 
   // Development Mode - Auto-navigate with fixed credentials
   useEffect(() => {
-    const isDevMode = USE_DEV_MODE === 'true';
+    // Trim and normalize the value to handle any whitespace or line ending characters
+    const devModeValue = (USE_DEV_MODE || '').trim().toLowerCase();
+    const isDevMode = devModeValue === 'true';
     console.log(
       '[DevMode] USE_DEV_MODE:',
       USE_DEV_MODE,
+      'TYPE:',
+      typeof USE_DEV_MODE,
+      'LENGTH:',
+      USE_DEV_MODE?.length,
+      'TRIMMED:',
+      devModeValue,
       'isDevMode:',
       isDevMode,
     );
@@ -94,7 +102,8 @@ function Root({ navigation }: { navigation: NavigationProp<ParamListBase> }) {
 
   useEffect(() => {
     // Skip NFC reading in dev mode
-    if (USE_DEV_MODE === 'true') {
+    const devModeValue = (USE_DEV_MODE || '').trim().toLowerCase();
+    if (devModeValue === 'true') {
       console.log('[DevMode] Skipping NFC initialization');
       return;
     }
@@ -111,7 +120,8 @@ function Root({ navigation }: { navigation: NavigationProp<ParamListBase> }) {
   useEffect(() => {
     const handleNavigation = async () => {
       // Skip validation entirely in development mode
-      const isDevMode = USE_DEV_MODE === 'true';
+      const devModeValue = (USE_DEV_MODE || '').trim().toLowerCase();
+      const isDevMode = devModeValue === 'true';
       if (isDevMode) {
         console.log('[DevMode] Validation bypassed - development mode enabled');
         return;
@@ -439,7 +449,7 @@ function Root({ navigation }: { navigation: NavigationProp<ParamListBase> }) {
 
         {/* NFC Section */}
         <View style={tw`items-center mt-4 px-6`}>
-          {USE_DEV_MODE === 'true' ? (
+          {(USE_DEV_MODE || '').trim().toLowerCase() === 'true' ? (
             <>
               <View
                 style={[

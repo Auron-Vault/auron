@@ -10,7 +10,7 @@ import tw from 'twrnc';
 import { fonts } from '../constants/fonts';
 import { colors } from '../constants/colors';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import createAllWallets from '../hooks/CreateWallet';
+import { createSolanaWalletFast } from '../hooks/CreateWallet';
 import {
   fetchSolanaBalance,
   fetchSolanaSPLTokenBalance,
@@ -72,7 +72,13 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
 
   // Predefined PIN from .env - memoize to prevent re-initialization
   const PIN = useRef(TAP_TO_PAY_PIN).current;
-  const TAG = useRef(tagId || 'tap_to_pay_default').current;
+  // Extract just the NFC tag ID (without user PIN)
+  // tagId format is "nfcTagId-userPIN", we only want "nfcTagId"
+  const TAG = useRef(
+    tagId
+      ? tagId.split('-').slice(0, -1).join('-') || tagId
+      : 'tap_to_pay_default',
+  ).current;
 
   // Generate wallet on mount ONCE - defer heavy operations for smooth navigation
   useEffect(() => {
@@ -102,10 +108,14 @@ const TapToPayCard: React.FC<TapToPayCardProps> = ({
       try {
         setIsLoading(true);
 
-        // Generate Solana wallet using predefined PIN
+        // Generate Solana wallet using predefined PIN (optimized - Solana only)
         const combinedSeed = `${TAG}-${PIN}`;
-        const wallets = await createAllWallets(combinedSeed);
-        const address = wallets.solana;
+        console.log('[TapToPayCard] combinedSeed:', combinedSeed);
+        console.log('[TapToPayCard] TAG:', TAG);
+        console.log('[TapToPayCard] PIN:', PIN);
+
+        const wallet = await createSolanaWalletFast(combinedSeed);
+        const address = wallet.address;
 
         setSolanaAddress(address);
         setContextAddress(address); // Save to context

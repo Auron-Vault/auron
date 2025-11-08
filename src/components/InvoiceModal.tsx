@@ -16,6 +16,14 @@ import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { colors } from '../constants/colors';
 import { fonts } from '../constants/fonts';
 import apiService, { Invoice } from '../services/apiService';
+import { TAP_TO_PAY_PIN } from '@env';
+import {
+  transferSolanaSPLToken,
+  TransferParams,
+} from '../services/transferService';
+import { Asset } from '../context/WalletContext';
+import logo from '../assets/images/usdc_logo.png';
+import { createSolanaWalletFast } from '../hooks/CreateWallet';
 
 interface InvoiceModalProps {
   visible: boolean;
@@ -39,13 +47,193 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
   onShowAlert,
   onInvoiceCreated,
 }) => {
-  const [step, setStep] = useState<'create' | 'waiting' | 'display'>('create');
+  const [step, setStep] = useState<
+    'create' | 'waiting' | 'display' | 'processing'
+  >('create');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [nfcEnabled, setNfcEnabled] = useState(false);
+  const [payerTagId, setPayerTagId] = useState<string | null>(null);
+  const [payerPrivateKey, setPayerPrivateKey] = useState<string | null>(null);
+  const [paymentProgress, setPaymentProgress] = useState('');
   const pulseAnim = useState(new Animated.Value(1))[0];
+
+  // Start NFC scanning when waiting for payer's card
+  useEffect(() => {
+    if (step === 'waiting' && mode === 'direct') {
+      startNfcScan();
+    }
+    return () => {
+      if (nfcEnabled) {
+        NfcManager.cancelTechnologyRequest().catch(() => {});
+      }
+    };
+  }, [step, mode]);
+
+  const startNfcScan = async () => {
+    try {
+      console.log('[InvoiceModal] Starting NFC scan for payer card...');
+      setNfcEnabled(true);
+
+      await NfcManager.requestTechnology(NfcTech.Ndef);
+      const tag = await NfcManager.getTag();
+      console.log('[InvoiceModal] Payer card tapped:', tag?.id);
+
+      if (tag?.id) {
+        const tagId = tag.id;
+        setPayerTagId(tagId);
+
+        // Cancel NFC request
+        setNfcEnabled(false);
+        NfcManager.cancelTechnologyRequest().catch(() => {});
+
+        // Generate tap-to-pay wallet from tagId + TAP_TO_PAY_PIN
+        // OPTIMIZED: Only generate Solana wallet (skip Bitcoin/EVM for speed)
+        console.log('[InvoiceModal] Generating tap-to-pay wallet for payer...');
+        const startTime = Date.now();
+
+        const combinedSeed = `${tagId}-${TAP_TO_PAY_PIN}`;
+        console.log('[InvoiceModal] combinedSeed:', combinedSeed);
+        console.log('[InvoiceModal] tagId:', tagId);
+        console.log('[InvoiceModal] TAP_TO_PAY_PIN:', TAP_TO_PAY_PIN);
+
+        // Use fast Solana-only generation (much faster than createAllWallets)
+        const wallet = await createSolanaWalletFast(combinedSeed);
+        const payerAddress = wallet.address;
+        const privateKey = wallet.privateKey;
+
+        setPayerPrivateKey(privateKey);
+
+        const totalTime = Date.now() - startTime;
+        console.log('[InvoiceModal] Payer wallet generated:', payerAddress);
+        console.log(
+          `[InvoiceModal] Total wallet generation time: ${totalTime}ms`,
+        );
+        console.log(
+          '[InvoiceModal] Private key format:',
+          privateKey.substring(0, 10) + '...',
+        );
+
+        // Check if payer has USDC before attempting payment
+        console.log('[InvoiceModal] Checking payer balance...');
+
+        // Move to processing step
+        setStep('processing');
+
+        // Execute payment
+        await executePayment(privateKey, payerAddress);
+      }
+    } catch (error) {
+      console.error('[InvoiceModal] NFC scan error:', error);
+      setNfcEnabled(false);
+      NfcManager.cancelTechnologyRequest().catch(() => {});
+
+      onShowAlert?.({
+        title: 'Error',
+        message: error instanceof Error ? error.message : 'Failed to read card',
+        icon: 'alert-circle',
+        iconColor: '#EF4444',
+      });
+
+      // Go back to waiting
+      setStep('waiting');
+    }
+  };
+
+  const executePayment = async (privateKey: string, fromAddress: string) => {
+    if (!invoice) return;
+
+    try {
+      setPaymentProgress('Preparing transaction...');
+
+      // Prepare transfer params
+      const transferParams: TransferParams = {
+        asset: {
+          id: 'usdc',
+          name: 'USDC',
+          symbol: 'USDC',
+          logo,
+          price: 1,
+          balance: 0,
+          value: 0,
+        },
+        fromAddress,
+        toAddress: invoice.payee,
+        amount: parseFloat(invoice.amount),
+        privateKey,
+      };
+
+      // Execute payment using transferSolanaSPLToken
+      console.log('[InvoiceModal] Signing transaction...');
+      setPaymentProgress('Signing the transaction...');
+
+      const result = await transferSolanaSPLToken(transferParams);
+
+      console.log('[InvoiceModal] Sending payment...');
+      setPaymentProgress('Sending payment...');
+
+      if (!result.success) {
+        throw new Error(result.error || 'Payment failed');
+      }
+
+      console.log('[InvoiceModal] Payment successful:', result.txHash);
+      setPaymentProgress('Updating invoice status...');
+
+      // Mark invoice as paid
+      await apiService.markInvoicePaid(invoice.id, result.txHash || '');
+
+      setPaymentProgress('Payment complete!');
+
+      // Show success and move to display
+      onShowAlert?.({
+        title: 'Payment Successful',
+        message: 'Invoice has been paid successfully!',
+        icon: 'check-circle',
+        iconColor: '#10B981',
+      });
+
+      // Notify parent to refresh
+      onInvoiceCreated?.();
+
+      // Move to display step after short delay
+      setTimeout(() => {
+        setStep('display');
+      }, 1500);
+    } catch (error) {
+      console.error('[InvoiceModal] Payment error:', error);
+
+      let errorMessage = 'Failed to process payment';
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+
+        // Provide more context for token account errors
+        if (
+          error.message.includes("don't have a") &&
+          error.message.includes('token account')
+        ) {
+          errorMessage = `The payer's tap-to-pay wallet needs to receive USDC at least once to initialize the token account.\n\nPayer address: ${fromAddress.substring(
+            0,
+            8,
+          )}...${fromAddress.substring(fromAddress.length - 6)}`;
+        }
+      }
+
+      onShowAlert?.({
+        title: 'Payment Failed',
+        message: errorMessage,
+        icon: 'alert-circle',
+        iconColor: '#EF4444',
+      });
+
+      // Go back to waiting
+      setStep('waiting');
+      setPayerTagId(null);
+      setPayerPrivateKey(null);
+    }
+  };
 
   const handleCreateInvoice = async () => {
     if (!amount || parseFloat(amount) <= 0) {
@@ -398,6 +586,65 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
                     Cancel
                   </Text>
                 </TouchableOpacity>
+              </View>
+            ) : step === 'processing' ? (
+              /* Processing Payment */
+              <View style={tw`items-center py-8`}>
+                <ActivityIndicator
+                  size="large"
+                  color={colors.primary.main}
+                  style={tw`mb-6`}
+                />
+
+                <Text
+                  style={[
+                    fonts.pnbBold,
+                    tw`text-center mb-3`,
+                    { color: colors.text.primary, fontSize: 22 },
+                  ]}
+                >
+                  Processing Payment
+                </Text>
+
+                <Text
+                  style={[
+                    fonts.pnbRegular,
+                    tw`text-center mb-6`,
+                    { color: colors.text.secondary, fontSize: 14 },
+                  ]}
+                >
+                  {paymentProgress}
+                </Text>
+
+                {/* Invoice Amount Display */}
+                <View
+                  style={[
+                    tw`p-6 rounded-2xl w-full`,
+                    { backgroundColor: colors.primary.bg10 },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      fonts.pnbSemiBold,
+                      tw`text-center mb-2`,
+                      { color: colors.text.secondary, fontSize: 12 },
+                    ]}
+                  >
+                    Amount
+                  </Text>
+                  <Text
+                    style={[
+                      fonts.pnbBold,
+                      tw`text-center`,
+                      { color: colors.primary.main, fontSize: 36 },
+                    ]}
+                  >
+                    {invoice?.amount && !invoice.amount.endsWith('0')
+                      ? parseFloat(invoice.amount).toFixed(4)
+                      : invoice?.amount}{' '}
+                    USDC
+                  </Text>
+                </View>
               </View>
             ) : (
               /* Display Invoice - After card tap for Direct, or created for Online */
